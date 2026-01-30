@@ -12,19 +12,33 @@ export function RelatoriosPage() {
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  // Category breakdown for current month
+  // Category breakdown for current month - ONLY EXPENSES
   const categoryData = useMemo(() => {
-    const categories: Category[] = ['alimentacao', 'transporte', 'moradia', 'saude', 'educacao', 'lazer', 'compras', 'outros'];
-    return categories
-      .map((cat) => ({
-        name: categoryLabels[cat].split(' ')[1] || categoryLabels[cat],
-        value: getTotalByCategory(cat, currentMonth, currentYear),
-        color: categoryColors[cat],
-        fullName: categoryLabels[cat],
-      }))
+    // Only expense categories (exclude income categories like salario, freelance, investimentos)
+    const expenseCategories: Category[] = ['alimentacao', 'transporte', 'moradia', 'saude', 'educacao', 'lazer', 'compras', 'outros'];
+    
+    // Filter transactions for current month that are EXPENSES only
+    const monthExpenses = transactions.filter((t) => {
+      const d = new Date(t.date);
+      return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+    
+    return expenseCategories
+      .map((cat) => {
+        const categoryTotal = monthExpenses
+          .filter((t) => t.category === cat)
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        return {
+          name: categoryLabels[cat].split(' ')[1] || categoryLabels[cat],
+          value: categoryTotal,
+          color: categoryColors[cat],
+          fullName: categoryLabels[cat],
+        };
+      })
       .filter((d) => d.value > 0)
       .sort((a, b) => b.value - a.value);
-  }, [transactions, currentMonth, currentYear, getTotalByCategory]);
+  }, [transactions, currentMonth, currentYear]);
 
   // Monthly comparison
   const monthlyData = useMemo(() => {

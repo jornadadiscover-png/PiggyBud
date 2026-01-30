@@ -3,18 +3,51 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
-import { User, Target, Trophy, Download, Trash2, Edit2, Check } from 'lucide-react';
+import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ExportReportDialog } from '@/components/ExportReportDialog';
 
-// Mock achievements
+// Achievements with clear descriptions
 const achievements = [
-  { id: '1', title: 'Primeira Transação', description: 'Registrou sua primeira transação', icon: '🎉', unlocked: true },
-  { id: '2', title: 'Economista', description: 'Ficou abaixo da meta por 1 mês', icon: '💰', unlocked: false },
-  { id: '3', title: 'Disciplinado', description: 'Registrou gastos por 7 dias seguidos', icon: '📅', unlocked: false },
-  { id: '4', title: 'Investidor', description: 'Registrou uma receita de investimento', icon: '📈', unlocked: false },
-  { id: '5', title: 'Controlador', description: '30 dias usando o app', icon: '🏆', unlocked: false },
+  { 
+    id: '1', 
+    title: 'Primeira Transação', 
+    description: 'Registre sua primeira transação no app', 
+    icon: '🎉',
+    checkFn: (transactionCount: number) => transactionCount > 0
+  },
+  { 
+    id: '2', 
+    title: 'Economista', 
+    description: 'Fique abaixo da meta mensal por 1 mês', 
+    icon: '💰',
+    checkFn: () => false // Would need historical data
+  },
+  { 
+    id: '3', 
+    title: 'Disciplinado', 
+    description: 'Registre gastos por 7 dias seguidos', 
+    icon: '📅',
+    checkFn: () => false // Would need date tracking
+  },
+  { 
+    id: '4', 
+    title: 'Investidor', 
+    description: 'Registre uma receita de investimento', 
+    icon: '📈',
+    checkFn: (_, transactions: any[]) => 
+      transactions.some(t => t.category === 'investimentos' && t.type === 'income')
+  },
+  { 
+    id: '5', 
+    title: 'Controlador', 
+    description: 'Use o app por 30 dias', 
+    icon: '🏆',
+    checkFn: () => false // Would need first use date
+  },
 ];
 
 export function PerfilPage() {
@@ -41,23 +74,14 @@ export function PerfilPage() {
     setEditingGoal(false);
   };
 
-  const handleExport = () => {
-    const data = {
-      profile,
-      transactions,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `finmood-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: '📦 Dados exportados!', description: 'Arquivo baixado com sucesso.' });
-  };
-
-  const unlockedCount = achievements.filter((a) => a.unlocked || transactions.length > 0).length;
+  // Calculate unlocked achievements
+  const achievementStatus = achievements.map(achievement => ({
+    ...achievement,
+    unlocked: achievement.checkFn(transactions.length, transactions)
+  }));
+  
+  const unlockedCount = achievementStatus.filter(a => a.unlocked).length;
+  const progressPercentage = (unlockedCount / achievements.length) * 100;
 
   return (
     <div className="flex flex-col min-h-screen pb-20 p-4">
@@ -109,7 +133,7 @@ export function PerfilPage() {
               <p className="text-xs text-muted-foreground">Transações</p>
             </div>
             <div className="bg-muted/50 rounded-xl p-3">
-              <p className="text-2xl font-bold text-primary">{unlockedCount}</p>
+              <p className="text-2xl font-bold text-primary">{unlockedCount}/{achievements.length}</p>
               <p className="text-xs text-muted-foreground">Conquistas</p>
             </div>
           </div>
@@ -156,50 +180,86 @@ export function PerfilPage() {
         </CardContent>
       </Card>
 
-      {/* Achievements */}
+      {/* Achievements - Redesigned */}
       <Card className="mb-4 border-0 shadow-soft">
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-warning" />
-            <CardTitle className="text-base">Conquistas</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-warning" />
+              <CardTitle className="text-base">Conquistas</CardTitle>
+            </div>
+            <span className="text-xs text-muted-foreground">{unlockedCount}/{achievements.length}</span>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-5 gap-2">
-            {achievements.map((achievement) => {
-              const isUnlocked = achievement.unlocked || (achievement.id === '1' && transactions.length > 0);
-              return (
-                <div
-                  key={achievement.id}
-                  className={`aspect-square rounded-xl flex items-center justify-center text-2xl ${
-                    isUnlocked 
-                      ? 'bg-warning/10' 
-                      : 'bg-muted/50 grayscale opacity-50'
-                  }`}
-                  title={`${achievement.title}: ${achievement.description}`}
-                >
+          {/* Progress bar */}
+          <div className="mb-4">
+            <Progress value={progressPercentage} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-1 text-center">
+              Desbloqueie conquistas usando o app!
+            </p>
+          </div>
+
+          {/* Achievement cards */}
+          <div className="space-y-2">
+            {achievementStatus.map((achievement) => (
+              <div
+                key={achievement.id}
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                  achievement.unlocked 
+                    ? 'bg-warning/10 border border-warning/20' 
+                    : 'bg-muted/30 opacity-60'
+                }`}
+              >
+                <div className={`text-2xl ${!achievement.unlocked && 'grayscale'}`}>
                   {achievement.icon}
                 </div>
-              );
-            })}
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium text-sm ${!achievement.unlocked && 'text-muted-foreground'}`}>
+                    {achievement.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {achievement.description}
+                  </p>
+                </div>
+                <div className={`flex items-center gap-1 text-xs font-medium ${
+                  achievement.unlocked ? 'text-warning' : 'text-muted-foreground'
+                }`}>
+                  {achievement.unlocked ? (
+                    <>
+                      <Unlock className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Desbloqueado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Bloqueado</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Actions */}
+      {/* Actions - Improved Export */}
       <Card className="border-0 shadow-soft">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Dados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full justify-start rounded-xl"
-            onClick={handleExport}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar dados (JSON)
-          </Button>
+          <ExportReportDialog
+            trigger={
+              <Button
+                variant="outline"
+                className="w-full justify-start rounded-xl"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exportar Relatório
+              </Button>
+            }
+          />
           <Button
             variant="ghost"
             className="w-full justify-start rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
