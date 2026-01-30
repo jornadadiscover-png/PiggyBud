@@ -1,124 +1,132 @@
 
 
-# 💰 FinMood - App de Controle Financeiro com Personalidade
+# Plano de Correções - FinMood
 
-## Visão Geral
-Um aplicativo de controle financeiro completo que combina automação inteligente com humor e motivação. O app lê notificações bancárias, reage com mensagens engraçadas baseadas nos gastos, e oferece uma planilha completa para gestão financeira manual.
+## Problema 1: Gastos por Categoria somando Receitas + Despesas
 
----
+### Situacao Atual
+A funcao `getTotalByCategory` no store soma todas as transacoes de uma categoria, independente de ser receita ou despesa. No grafico de pizza "Gastos por Categoria", isso faz com que valores de receita (salario, freelance) sejam misturados com despesas.
 
-## 🎨 Design & Identidade Visual
-- **Estilo moderno e colorido** inspirado em fintechs brasileiras (Nubank, PicPay)
-- Gradientes vibrantes em roxo e verde
-- Cards com sombras suaves e cantos arredondados
-- Ícones animados para reações do app
-- Emojis nas mensagens de personalidade
+### Solucao
+Modificar a logica no `RelatoriosPage.tsx` para filtrar apenas transacoes do tipo `expense` antes de calcular os totais por categoria.
 
----
-
-## 📱 Estrutura de Navegação (5 Abas)
-
-### 1. **Feed (Início)**
-- Timeline de transações com as reações do app
-- Cards coloridos mostrando gasto + mensagem engraçada
-- Resumo do dia no topo (total gasto, saldo)
-- Botão "Simular Notificação" para testes
-
-### 2. **Planilha**
-- Tabela editável estilo Excel
-- Células clicáveis para edição inline
-- Filtros por período, categoria, tipo
-- Botão flutuante (+) para adicionar transações manuais
-- Separação entre Receitas e Despesas
-
-### 3. **Relatórios**
-- Gráficos de gastos por categoria (pizza/barras)
-- Evolução mensal (linha do tempo)
-- Comparativo mês atual vs anterior
-- Top 5 maiores gastos do mês
-
-### 4. **Configurações**
-- Gerenciar bancos monitorados (Nubank, Itaú, Bradesco, C6, Mercado Pago, PagBank, Inter, etc.)
-- Configurar horários de lembretes
-- Personalizar categorias
-- Ajustar sensibilidade das reações (mais ou menos engraçadas)
-- Alterar PIN de acesso
-
-### 5. **Perfil**
-- Dados pessoais do usuário
-- Metas financeiras mensais
-- Conquistas/badges (gamificação leve)
-- Backup/exportar dados
+**Mudancas no arquivo `src/pages/RelatoriosPage.tsx`:**
+- Atualizar o `useMemo` de `categoryData` para filtrar apenas despesas
+- Excluir categorias de receita (salario, freelance, investimentos) da lista de categorias do grafico
 
 ---
 
-## 🎭 Motor de Personalidade
+## Problema 2: Conquistas sem explicacao
 
-### Reações por Faixa de Valor:
-- **Até R$ 20**: Mensagens de incentivo ("Isso aí! Cada centavo conta!")
-- **R$ 20-50**: Reações neutras com piadas leves
-- **R$ 50-100**: Alertas humorísticos ("Opa, tá gastando hein!")
-- **R$ 100-200**: Reações dramáticas ("Socorro! Chamem meu gerente!")
-- **Acima de R$ 200**: Mensagens épicas ("Dois dias de trabalho nesse jantar? Corajoso!")
+### Situacao Atual
+Os icones de conquistas aparecem em uma grid 5x5 sem nenhuma explicacao visivel. O usuario precisa passar o mouse para ver o titulo (via `title`), o que nao funciona bem em mobile.
 
-### Reações por Categoria:
-- **Alimentação**: Piadas com comida
-- **Entretenimento**: Referências pop
-- **Transporte**: Memes de Uber/99
+### Solucao
+Redesenhar a secao de conquistas para mostrar:
+- Cada conquista em um card individual
+- Titulo e descricao visiveis
+- Indicador claro de "desbloqueado" vs "bloqueado"
+- Barra de progresso mostrando conquistas obtidas
 
----
-
-## 🔔 Sistema de Notificações e Lembretes
-
-- **Lembrete diário às 20h**: "Vamos fechar o caixa do dia?"
-- **Domingo à noite**: Resumo semanal
-- **Início do mês**: Meta do mês anterior atingida?
-- **Alertas de meta**: Quando ultrapassar 80% do limite
+**Mudancas no arquivo `src/pages/PerfilPage.tsx`:**
+- Substituir a grid de icones por uma lista de cards detalhados
+- Adicionar header explicativo "Desbloqueie conquistas usando o app"
+- Mostrar status de cada conquista de forma clara
 
 ---
 
-## 🔐 Segurança
+## Problema 3: Exportacao ruim (apenas JSON)
 
-- **Tela de bloqueio com PIN** (4-6 dígitos)
-- Opção de bloqueio automático ao sair do app
-- Dados armazenados localmente de forma criptografada
-- Sem envio de dados para servidores externos
+### Situacao Atual
+A exportacao gera apenas um arquivo JSON bruto que nao e legivel para usuarios comuns.
 
----
+### Solucao
+Criar um relatorio visual completo em HTML/PDF com:
+- Resumo financeiro do mes
+- Graficos e estatisticas
+- Lista de transacoes formatada
+- Opcao de visualizar antes de baixar
 
-## 🏦 Bancos Suportados (Simulação/Mock)
-- Nubank, Itaú, Bradesco, Banco do Brasil
-- C6 Bank, Inter, Next
-- Mercado Pago, PagBank, PicPay
-- Caixa, Santander
+**Novo componente `src/components/ExportReportDialog.tsx`:**
+- Dialog com preview do relatorio
+- Opcoes: visualizar, baixar PDF (via impressao), baixar CSV
+- Design bonito e profissional
 
----
-
-## 📦 Estrutura de Dados
-
-### Transações
-- Valor, Estabelecimento, Categoria
-- Data/Hora, Fonte (auto/manual)
-- Reação do app (mood)
-- Banco de origem
-
-### Categorias Padrão
-- Alimentação, Transporte, Moradia
-- Saúde, Educação, Lazer
-- Compras, Investimentos, Outros
+**Conteudo do Relatorio:**
+- Cabecalho com nome do usuario e periodo
+- Resumo: Total Receitas, Total Despesas, Saldo
+- Grafico de categorias (representacao textual)
+- Tabela de transacoes completa
+- Rodape com data de geracao
 
 ---
 
-## 🚀 Entrega
+## Arquivos a Modificar
 
-O app será construído em React + Vite, pronto para conversão em app nativo via Capacitor. Incluirá:
+| Arquivo | Mudanca |
+|---------|---------|
+| `src/stores/useTransactionStore.ts` | Adicionar funcao `getTotalByCategoryAndType` para filtrar por tipo |
+| `src/pages/RelatoriosPage.tsx` | Usar apenas despesas no grafico de categorias |
+| `src/pages/PerfilPage.tsx` | Redesenhar conquistas + integrar novo dialog de exportacao |
+| `src/components/ExportReportDialog.tsx` | Novo componente para relatorio visual |
 
-1. Interface completa com todas as 5 abas funcionais
-2. Sistema de PIN para proteção
-3. Banco de dados local (localStorage/IndexedDB)
-4. Botão de simulação para testar as reações
-5. Planilha editável com todas as funcionalidades
-6. Gráficos interativos de relatórios
-7. Sistema de lembretes configurável
-8. Instruções para configurar como app nativo Android/iOS
+---
+
+## Detalhes Tecnicos
+
+### Nova funcao no Store
+```text
+getTotalByCategoryAndType: (category, type, month, year) => number
+```
+Filtra transacoes por categoria E tipo (expense/income).
+
+### Estrutura do Relatorio de Exportacao
+```text
++------------------------------------------+
+|  FINMOOD - Relatorio Financeiro          |
+|  Usuario: [Nome]                         |
+|  Periodo: Janeiro 2026                   |
++------------------------------------------+
+|                                          |
+|  RESUMO DO MES                           |
+|  +----------+  +----------+  +--------+  |
+|  | Receitas |  | Despesas |  | Saldo  |  |
+|  | R$ X,XX  |  | R$ X,XX  |  | R$ X,XX|  |
+|  +----------+  +----------+  +--------+  |
+|                                          |
+|  GASTOS POR CATEGORIA                    |
+|  Alimentacao ████████ R$ 500            |
+|  Transporte  ████     R$ 250            |
+|  Lazer       ██       R$ 125            |
+|                                          |
+|  TRANSACOES                              |
+|  +------+--------+--------+--------+     |
+|  | Data | Desc   | Categ  | Valor  |     |
+|  +------+--------+--------+--------+     |
+|  | 01/01| iFood  | Alim.  | -50,00 |     |
+|  | 02/01| Uber   | Transp | -25,00 |     |
+|  | 05/01| Salario| Salario| +5000  |     |
+|  +------+--------+--------+--------+     |
+|                                          |
+|  Gerado em: 30/01/2026 as 14:30          |
++------------------------------------------+
+```
+
+### Redesign das Conquistas
+Cada conquista sera exibida como:
+```text
++------------------------------------------+
+| [Icone] Titulo da Conquista              |
+|         Descricao do que precisa fazer   |
+|         [Desbloqueado] ou [Bloqueado]    |
++------------------------------------------+
+```
+
+---
+
+## Resultado Esperado
+
+1. O grafico de pizza mostrara apenas DESPESAS por categoria
+2. As conquistas terao explicacoes claras e visiveis
+3. A exportacao gerara um relatorio bonito e profissional que pode ser visualizado, impresso ou baixado
 
