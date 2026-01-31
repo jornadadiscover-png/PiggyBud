@@ -1,132 +1,153 @@
 
 
-# Plano de Correções - FinMood
+# Plano de Melhorias - FinFunny
 
-## Problema 1: Gastos por Categoria somando Receitas + Despesas
+## 1. Mudanca de Nome: FinMood para FinFunny
 
-### Situacao Atual
-A funcao `getTotalByCategory` no store soma todas as transacoes de uma categoria, independente de ser receita ou despesa. No grafico de pizza "Gastos por Categoria", isso faz com que valores de receita (salario, freelance) sejam misturados com despesas.
-
-### Solucao
-Modificar a logica no `RelatoriosPage.tsx` para filtrar apenas transacoes do tipo `expense` antes de calcular os totais por categoria.
-
-**Mudancas no arquivo `src/pages/RelatoriosPage.tsx`:**
-- Atualizar o `useMemo` de `categoryData` para filtrar apenas despesas
-- Excluir categorias de receita (salario, freelance, investimentos) da lista de categorias do grafico
-
----
-
-## Problema 2: Conquistas sem explicacao
-
-### Situacao Atual
-Os icones de conquistas aparecem em uma grid 5x5 sem nenhuma explicacao visivel. O usuario precisa passar o mouse para ver o titulo (via `title`), o que nao funciona bem em mobile.
-
-### Solucao
-Redesenhar a secao de conquistas para mostrar:
-- Cada conquista em um card individual
-- Titulo e descricao visiveis
-- Indicador claro de "desbloqueado" vs "bloqueado"
-- Barra de progresso mostrando conquistas obtidas
-
-**Mudancas no arquivo `src/pages/PerfilPage.tsx`:**
-- Substituir a grid de icones por uma lista de cards detalhados
-- Adicionar header explicativo "Desbloqueie conquistas usando o app"
-- Mostrar status de cada conquista de forma clara
-
----
-
-## Problema 3: Exportacao ruim (apenas JSON)
-
-### Situacao Atual
-A exportacao gera apenas um arquivo JSON bruto que nao e legivel para usuarios comuns.
-
-### Solucao
-Criar um relatorio visual completo em HTML/PDF com:
-- Resumo financeiro do mes
-- Graficos e estatisticas
-- Lista de transacoes formatada
-- Opcao de visualizar antes de baixar
-
-**Novo componente `src/components/ExportReportDialog.tsx`:**
-- Dialog com preview do relatorio
-- Opcoes: visualizar, baixar PDF (via impressao), baixar CSV
-- Design bonito e profissional
-
-**Conteudo do Relatorio:**
-- Cabecalho com nome do usuario e periodo
-- Resumo: Total Receitas, Total Despesas, Saldo
-- Grafico de categorias (representacao textual)
-- Tabela de transacoes completa
-- Rodape com data de geracao
-
----
-
-## Arquivos a Modificar
+Atualizar o nome do app em todos os arquivos onde aparece:
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/stores/useTransactionStore.ts` | Adicionar funcao `getTotalByCategoryAndType` para filtrar por tipo |
-| `src/pages/RelatoriosPage.tsx` | Usar apenas despesas no grafico de categorias |
-| `src/pages/PerfilPage.tsx` | Redesenhar conquistas + integrar novo dialog de exportacao |
-| `src/components/ExportReportDialog.tsx` | Novo componente para relatorio visual |
+| `index.html` | Titulo, meta tags (og:title, twitter:site, description) |
+| `capacitor.config.json` | Campo `appName` |
+| `src/index.css` | Comentario do design system |
+| `src/components/ExportReportDialog.tsx` | Titulo do relatorio, footer, preview |
+| `src/stores/useTransactionStore.ts` | Nome do storage |
+| `src/stores/useSettingsStore.ts` | Nome do storage |
 
 ---
 
-## Detalhes Tecnicos
+## 2. Remover Botao CSV
 
-### Nova funcao no Store
-```text
-getTotalByCategoryAndType: (category, type, month, year) => number
-```
-Filtra transacoes por categoria E tipo (expense/income).
-
-### Estrutura do Relatorio de Exportacao
-```text
-+------------------------------------------+
-|  FINMOOD - Relatorio Financeiro          |
-|  Usuario: [Nome]                         |
-|  Periodo: Janeiro 2026                   |
-+------------------------------------------+
-|                                          |
-|  RESUMO DO MES                           |
-|  +----------+  +----------+  +--------+  |
-|  | Receitas |  | Despesas |  | Saldo  |  |
-|  | R$ X,XX  |  | R$ X,XX  |  | R$ X,XX|  |
-|  +----------+  +----------+  +--------+  |
-|                                          |
-|  GASTOS POR CATEGORIA                    |
-|  Alimentacao ████████ R$ 500            |
-|  Transporte  ████     R$ 250            |
-|  Lazer       ██       R$ 125            |
-|                                          |
-|  TRANSACOES                              |
-|  +------+--------+--------+--------+     |
-|  | Data | Desc   | Categ  | Valor  |     |
-|  +------+--------+--------+--------+     |
-|  | 01/01| iFood  | Alim.  | -50,00 |     |
-|  | 02/01| Uber   | Transp | -25,00 |     |
-|  | 05/01| Salario| Salario| +5000  |     |
-|  +------+--------+--------+--------+     |
-|                                          |
-|  Gerado em: 30/01/2026 as 14:30          |
-+------------------------------------------+
-```
-
-### Redesign das Conquistas
-Cada conquista sera exibida como:
-```text
-+------------------------------------------+
-| [Icone] Titulo da Conquista              |
-|         Descricao do que precisa fazer   |
-|         [Desbloqueado] ou [Bloqueado]    |
-+------------------------------------------+
-```
+O botao "CSV" sera removido do `ExportReportDialog.tsx`, deixando apenas o botao "Imprimir / PDF" que funciona corretamente. A funcao `handleDownloadCSV` tambem sera removida.
 
 ---
 
-## Resultado Esperado
+## 3. Diferenciais Propostos para o FinFunny
 
-1. O grafico de pizza mostrara apenas DESPESAS por categoria
-2. As conquistas terao explicacoes claras e visiveis
-3. A exportacao gerara um relatorio bonito e profissional que pode ser visualizado, impresso ou baixado
+Analisei o mercado de apps financeiros e proponho **4 diferenciais unicos** que vao alem da leitura automatica de notificacoes:
+
+### 3.1 Mascote Animado com Expressoes
+
+Um personagem animado (tipo Clippy, mas moderno) que aparece na tela com diferentes expressoes baseadas nos gastos:
+
+```text
++------------------------------------------+
+|                                          |
+|     😊 -> 😅 -> 😰 -> 🤯 -> 💀          |
+|                                          |
+|  O mascote muda de expressao conforme    |
+|  o usuario gasta mais durante o dia      |
++------------------------------------------+
+```
+
+**Implementacao:**
+- Componente `MascotAvatar` com SVG animado
+- 5 estados de humor: feliz, normal, preocupado, assustado, dramatico
+- Animacoes CSS suaves de transicao
+- Aparece no header do Feed e nas notificacoes
+
+### 3.2 Modo Desafio Mensal
+
+Sistema de desafios que engaja o usuario a economizar:
+
+- "Semana sem iFood" - Evite delivery por 7 dias
+- "Modo Economico" - Gaste menos que X por dia
+- "Transporte Alternativo" - Use apps de transporte menos vezes
+- Recompensas: badges especiais, frases de elogio exclusivas
+
+### 3.3 Comparacao Social Anonima
+
+Mostrar ao usuario como ele se compara com outros usuarios (dados agregados e anonimos):
+
+- "Voce gasta 20% menos em alimentacao que a media"
+- "Seu controle de gastos esta no top 30%"
+
+*Nota: Como nao temos backend, isso sera simulado com dados ficticios para demonstracao*
+
+### 3.4 Frases do Dia Personalizadas
+
+Uma frase motivacional/engraçada diferente a cada dia, baseada no comportamento do usuario:
+
+- Se economizou ontem: "Ontem voce arrasou! Bora manter o ritmo?"
+- Se gastou muito: "Dia novo, cartao zerado. Vamos la!"
+- Fim do mes: "Reta final! Aguenta firme!"
+
+---
+
+## 4. Plano de Implementacao
+
+### Arquivos a Criar
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `src/components/MascotAvatar.tsx` | Mascote animado com expressoes |
+| `src/components/DailyQuote.tsx` | Frase do dia personalizada |
+| `src/components/ChallengesCard.tsx` | Card de desafios mensais |
+
+### Arquivos a Modificar
+
+| Arquivo | Mudanca |
+|---------|---------|
+| `index.html` | Nome FinFunny |
+| `capacitor.config.json` | appName: FinFunny |
+| `src/index.css` | Comentario atualizado |
+| `src/components/ExportReportDialog.tsx` | Remover CSV, atualizar nome |
+| `src/stores/*.ts` | Atualizar nomes dos storages |
+| `src/pages/FeedPage.tsx` | Adicionar mascote e frase do dia |
+| `src/pages/PerfilPage.tsx` | Adicionar secao de desafios |
+| `src/lib/personality-engine.ts` | Adicionar funcoes para desafios e frases |
+
+---
+
+## 5. Detalhes Tecnicos
+
+### Mascote Animado
+
+```text
+Estado         | Gasto Diario    | Expressao
+---------------|-----------------|----------
+Feliz          | 0-30% meta      | Sorriso grande
+Normal         | 30-60% meta     | Sorriso leve
+Preocupado     | 60-80% meta     | Cara de duvida
+Assustado      | 80-100% meta    | Olhos arregalados
+Dramatico      | 100%+ meta      | Chorando/desesperado
+```
+
+### Sistema de Desafios
+
+Novos campos no `useSettingsStore`:
+
+```text
+challenges: [
+  {
+    id: string,
+    title: string,
+    description: string,
+    category: string,
+    targetDays: number,
+    currentStreak: number,
+    completed: boolean
+  }
+]
+```
+
+### Frases do Dia
+
+Funcao `getDailyQuote(userStats)` que retorna uma frase baseada em:
+- Dia da semana
+- Gastos do dia anterior
+- Tendencia do mes
+- Proximidade da meta
+
+---
+
+## 6. Resultado Esperado
+
+1. Nome do app atualizado para FinFunny em todos os lugares
+2. Botao CSV removido do relatorio
+3. Mascote animado no Feed que reage aos gastos
+4. Sistema de desafios mensais para engajamento
+5. Frase do dia personalizada no topo do Feed
+6. App mais divertido e diferenciado da concorrencia
 
