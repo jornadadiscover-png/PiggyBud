@@ -109,7 +109,7 @@ export const useTransactionStore = create<TransactionStore>()(
       },
     }),
     {
-      name: 'finmood-transactions',
+      name: 'finfunny-transactions',
       partialize: (state) => ({ transactions: state.transactions }),
     }
   )

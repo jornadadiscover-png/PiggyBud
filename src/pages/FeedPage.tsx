@@ -6,6 +6,8 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TransactionCard } from '@/components/TransactionCard';
 import { SimulateNotificationDialog } from '@/components/SimulateNotificationDialog';
 import { AddTransactionDialog } from '@/components/AddTransactionDialog';
+import { MascotAvatar } from '@/components/MascotAvatar';
+import { DailyQuote } from '@/components/DailyQuote';
 import { TrendingUp, TrendingDown, Wallet, Bell, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -53,6 +55,11 @@ export function FeedPage() {
           >
             <Bell className="w-5 h-5" />
           </Button>
+        </div>
+
+        {/* Mascot - NEW! */}
+        <div className="mb-4 p-3 rounded-2xl bg-card/10 backdrop-blur-sm">
+          <MascotAvatar size="md" showMessage={true} />
         </div>
 
         {/* Balance Card */}
@@ -113,6 +120,11 @@ export function FeedPage() {
           </CardContent>
         </Card>
       </header>
+
+      {/* Daily Quote - NEW! */}
+      <div className="px-4 pt-4">
+        <DailyQuote />
+      </div>
 
       {/* Test Button */}
       <div className="px-4 py-4">
