@@ -9,6 +9,7 @@ import { useTransactionStore } from '@/stores/useTransactionStore';
 import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
+import { ChallengesCard } from '@/components/ChallengesCard';
 
 // Achievements with clear descriptions
 const achievements = [
@@ -88,7 +89,7 @@ export function PerfilPage() {
       {/* Header */}
       <header className="mb-6">
         <h1 className="text-2xl font-bold mb-2">👤 Perfil</h1>
-        <p className="text-muted-foreground">Suas informações e conquistas</p>
+        <p className="text-muted-foreground">Suas informações, conquistas e desafios</p>
       </header>
 
       {/* Profile Card */}
@@ -179,6 +180,11 @@ export function PerfilPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Monthly Challenges - NEW! */}
+      <div className="mb-4">
+        <ChallengesCard />
+      </div>
 
       {/* Achievements - Redesigned */}
       <Card className="mb-4 border-0 shadow-soft">

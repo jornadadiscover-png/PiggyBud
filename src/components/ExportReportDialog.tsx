@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { categoryLabels } from '@/types';
-import { Download, FileText, Printer } from 'lucide-react';
+import { FileText, Printer } from 'lucide-react';
 
 interface ExportReportDialogProps {
   trigger: React.ReactNode;
@@ -82,7 +82,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Relatório FinMood - ${monthName}</title>
+          <title>Relatório FinFunny - ${monthName}</title>
           <style>
             * { box-sizing: border-box; margin: 0; padding: 0; }
             body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #333; }
@@ -116,7 +116,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         </head>
         <body>
           <div class="header">
-            <h1>💰 FinMood - Relatório Financeiro</h1>
+            <h1>😄 FinFunny - Relatório Financeiro</h1>
             <p>${profile.name ? `${profile.name} • ` : ''}${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</p>
           </div>
           
@@ -181,7 +181,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           </div>
 
           <div class="footer">
-            Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • FinMood App
+            Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • FinFunny App
           </div>
         </body>
       </html>
@@ -190,26 +190,6 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => printWindow.print(), 250);
-  };
-
-  const handleDownloadCSV = () => {
-    const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'];
-    const rows = reportData.transactions.map((t) => [
-      new Date(t.date).toLocaleDateString('pt-BR'),
-      t.merchant,
-      categoryLabels[t.category] || t.category,
-      t.type === 'income' ? 'Receita' : 'Despesa',
-      t.amount.toFixed(2).replace('.', ','),
-    ]);
-
-    const csvContent = [headers, ...rows].map((row) => row.join(';')).join('\n');
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `finmood-${currentYear}-${String(currentMonth + 1).padStart(2, '0')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -227,7 +207,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         <div ref={reportRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           {/* Header */}
           <div className="text-center pb-3 border-b">
-            <h2 className="text-lg font-bold text-primary">💰 FinMood</h2>
+            <h2 className="text-lg font-bold text-primary">😄 FinFunny</h2>
             <p className="text-sm text-muted-foreground capitalize">
               {profile.name ? `${profile.name} • ` : ''}{monthName}
             </p>
@@ -316,15 +296,11 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-4 border-t">
-          <Button variant="outline" className="flex-1" onClick={handleDownloadCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            CSV
-          </Button>
-          <Button className="flex-1" onClick={handlePrint}>
+        {/* Actions - Only Print/PDF button now */}
+        <div className="pt-4 border-t">
+          <Button className="w-full" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-2" />
-            Imprimir / PDF
+            Imprimir / Salvar PDF
           </Button>
         </div>
       </DialogContent>

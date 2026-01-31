@@ -101,7 +101,7 @@ export const useSettingsStore = create<SettingsStore>()(
       },
     }),
     {
-      name: 'finmood-settings',
+      name: 'finfunny-settings',
       partialize: (state) => ({
         settings: state.settings,
         profile: state.profile,
