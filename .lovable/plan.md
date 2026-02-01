@@ -1,153 +1,118 @@
 
 
-# Plano de Melhorias - FinFunny
+# Plano: Foto de Perfil Personalizada
 
-## 1. Mudanca de Nome: FinMood para FinFunny
+## Objetivo
+Permitir que o usuário adicione uma foto de perfil personalizada, tornando o app mais pessoal e engajador.
 
-Atualizar o nome do app em todos os arquivos onde aparece:
+## Implementacao
+
+### 1. Atualizar o Tipo UserProfile
+
+Adicionar campo `avatarUrl` opcional ao tipo `UserProfile` em `src/types/index.ts`:
+
+```text
+UserProfile {
+  name: string
+  email?: string
+  monthlyGoal: number
+  createdAt: Date
+  avatarUrl?: string  // NOVO - URL da imagem em base64
+}
+```
+
+### 2. Atualizar o Store de Configuracoes
+
+Atualizar `defaultProfile` em `src/stores/useSettingsStore.ts` para incluir o novo campo:
+
+```text
+defaultProfile = {
+  ...
+  avatarUrl: undefined
+}
+```
+
+### 3. Modificar a Pagina de Perfil
+
+Atualizar `src/pages/PerfilPage.tsx` para:
+
+**UI do Avatar:**
+- Substituir o icone estatico `<User>` por um componente clicavel
+- Mostrar a imagem do usuario se existir, ou o icone padrao
+- Adicionar um botao de camera/editar sobreposto ao avatar
+- Animacao suave ao passar o mouse
+
+**Funcionalidade:**
+- Input hidden do tipo `file` para selecionar imagem
+- Aceitar apenas imagens (jpg, png, webp)
+- Converter a imagem para base64 para armazenar no localStorage
+- Limitar tamanho da imagem (redimensionar se necessario)
+- Opcao de remover a foto atual
+
+**Layout proposto:**
+```text
++------------------------------------------+
+|  [========= GRADIENT HEADER =========]   |
+|                                          |
+|      +----------------+                  |
+|      |                |                  |
+|      |   [FOTO OU     |   <- Clicavel    |
+|      |    ICONE]      |                  |
+|      |      📷        |   <- Botao edit  |
+|      +----------------+                  |
+|                                          |
+|  Nome: Joao Silva  [editar]              |
++------------------------------------------+
+```
+
+### 4. Funcao de Processamento de Imagem
+
+Criar funcao utilitaria para:
+- Ler arquivo de imagem
+- Redimensionar para max 200x200px (economia de espaco no localStorage)
+- Converter para base64
+- Comprimir qualidade para ~80%
+
+## Arquivos a Modificar
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `index.html` | Titulo, meta tags (og:title, twitter:site, description) |
-| `capacitor.config.json` | Campo `appName` |
-| `src/index.css` | Comentario do design system |
-| `src/components/ExportReportDialog.tsx` | Titulo do relatorio, footer, preview |
-| `src/stores/useTransactionStore.ts` | Nome do storage |
-| `src/stores/useSettingsStore.ts` | Nome do storage |
+| `src/types/index.ts` | Adicionar campo `avatarUrl` ao `UserProfile` |
+| `src/stores/useSettingsStore.ts` | Atualizar `defaultProfile` |
+| `src/pages/PerfilPage.tsx` | Adicionar UI e logica do avatar |
 
----
+## Detalhes Tecnicos
 
-## 2. Remover Botao CSV
-
-O botao "CSV" sera removido do `ExportReportDialog.tsx`, deixando apenas o botao "Imprimir / PDF" que funciona corretamente. A funcao `handleDownloadCSV` tambem sera removida.
-
----
-
-## 3. Diferenciais Propostos para o FinFunny
-
-Analisei o mercado de apps financeiros e proponho **4 diferenciais unicos** que vao alem da leitura automatica de notificacoes:
-
-### 3.1 Mascote Animado com Expressoes
-
-Um personagem animado (tipo Clippy, mas moderno) que aparece na tela com diferentes expressoes baseadas nos gastos:
+### Processamento da Imagem
 
 ```text
-+------------------------------------------+
-|                                          |
-|     😊 -> 😅 -> 😰 -> 🤯 -> 💀          |
-|                                          |
-|  O mascote muda de expressao conforme    |
-|  o usuario gasta mais durante o dia      |
-+------------------------------------------+
+1. Usuario clica no avatar
+2. Abre seletor de arquivos (accept="image/*")
+3. Arquivo selecionado -> FileReader
+4. Cria Canvas para redimensionar (max 200x200)
+5. Exporta como base64 JPEG 80% qualidade
+6. Salva no profile.avatarUrl via updateProfile()
+7. Zustand persiste no localStorage
 ```
 
-**Implementacao:**
-- Componente `MascotAvatar` com SVG animado
-- 5 estados de humor: feliz, normal, preocupado, assustado, dramatico
-- Animacoes CSS suaves de transicao
-- Aparece no header do Feed e nas notificacoes
+### Limite de Tamanho
 
-### 3.2 Modo Desafio Mensal
+- Max 200x200 pixels
+- Qualidade JPEG: 80%
+- Resultado: ~20-50KB por imagem (seguro para localStorage)
 
-Sistema de desafios que engaja o usuario a economizar:
+### UI Components Utilizados
 
-- "Semana sem iFood" - Evite delivery por 7 dias
-- "Modo Economico" - Gaste menos que X por dia
-- "Transporte Alternativo" - Use apps de transporte menos vezes
-- Recompensas: badges especiais, frases de elogio exclusivas
+- Avatar (Radix) para exibicao circular
+- Input hidden para upload
+- Button com icone Camera para overlay
+- Toast para feedback
 
-### 3.3 Comparacao Social Anonima
+## Resultado Esperado
 
-Mostrar ao usuario como ele se compara com outros usuarios (dados agregados e anonimos):
-
-- "Voce gasta 20% menos em alimentacao que a media"
-- "Seu controle de gastos esta no top 30%"
-
-*Nota: Como nao temos backend, isso sera simulado com dados ficticios para demonstracao*
-
-### 3.4 Frases do Dia Personalizadas
-
-Uma frase motivacional/engraçada diferente a cada dia, baseada no comportamento do usuario:
-
-- Se economizou ontem: "Ontem voce arrasou! Bora manter o ritmo?"
-- Se gastou muito: "Dia novo, cartao zerado. Vamos la!"
-- Fim do mes: "Reta final! Aguenta firme!"
-
----
-
-## 4. Plano de Implementacao
-
-### Arquivos a Criar
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `src/components/MascotAvatar.tsx` | Mascote animado com expressoes |
-| `src/components/DailyQuote.tsx` | Frase do dia personalizada |
-| `src/components/ChallengesCard.tsx` | Card de desafios mensais |
-
-### Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `index.html` | Nome FinFunny |
-| `capacitor.config.json` | appName: FinFunny |
-| `src/index.css` | Comentario atualizado |
-| `src/components/ExportReportDialog.tsx` | Remover CSV, atualizar nome |
-| `src/stores/*.ts` | Atualizar nomes dos storages |
-| `src/pages/FeedPage.tsx` | Adicionar mascote e frase do dia |
-| `src/pages/PerfilPage.tsx` | Adicionar secao de desafios |
-| `src/lib/personality-engine.ts` | Adicionar funcoes para desafios e frases |
-
----
-
-## 5. Detalhes Tecnicos
-
-### Mascote Animado
-
-```text
-Estado         | Gasto Diario    | Expressao
----------------|-----------------|----------
-Feliz          | 0-30% meta      | Sorriso grande
-Normal         | 30-60% meta     | Sorriso leve
-Preocupado     | 60-80% meta     | Cara de duvida
-Assustado      | 80-100% meta    | Olhos arregalados
-Dramatico      | 100%+ meta      | Chorando/desesperado
-```
-
-### Sistema de Desafios
-
-Novos campos no `useSettingsStore`:
-
-```text
-challenges: [
-  {
-    id: string,
-    title: string,
-    description: string,
-    category: string,
-    targetDays: number,
-    currentStreak: number,
-    completed: boolean
-  }
-]
-```
-
-### Frases do Dia
-
-Funcao `getDailyQuote(userStats)` que retorna uma frase baseada em:
-- Dia da semana
-- Gastos do dia anterior
-- Tendencia do mes
-- Proximidade da meta
-
----
-
-## 6. Resultado Esperado
-
-1. Nome do app atualizado para FinFunny em todos os lugares
-2. Botao CSV removido do relatorio
-3. Mascote animado no Feed que reage aos gastos
-4. Sistema de desafios mensais para engajamento
-5. Frase do dia personalizada no topo do Feed
-6. App mais divertido e diferenciado da concorrencia
+1. Usuario pode clicar no avatar e selecionar uma foto
+2. Foto e automaticamente redimensionada e comprimida
+3. Avatar mostra a foto do usuario ou icone padrao
+4. Botao para remover a foto se desejar
+5. Foto persiste entre sessoes via localStorage
 
