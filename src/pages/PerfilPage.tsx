@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
-import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock } from 'lucide-react';
+import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock, Camera, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { ChallengesCard } from '@/components/ChallengesCard';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 // Achievements with clear descriptions
 const achievements = [
@@ -51,6 +52,44 @@ const achievements = [
   },
 ];
 
+// Image processing utility
+const processImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 200;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = (height * MAX_SIZE) / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = (width * MAX_SIZE) / height;
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export function PerfilPage() {
   const { profile, updateProfile } = useSettingsStore();
   const { transactions } = useTransactionStore();
@@ -59,6 +98,32 @@ export function PerfilPage() {
   const [name, setName] = useState(profile.name);
   const [goal, setGoal] = useState(profile.monthlyGoal.toString());
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Por favor, selecione uma imagem', variant: 'destructive' });
+      return;
+    }
+    
+    try {
+      const base64 = await processImage(file);
+      updateProfile({ avatarUrl: base64 });
+      toast({ title: 'Foto atualizada!' });
+    } catch {
+      toast({ title: 'Erro ao processar imagem', variant: 'destructive' });
+    }
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleRemoveImage = () => {
+    updateProfile({ avatarUrl: undefined });
+    toast({ title: 'Foto removida!' });
+  };
 
   const handleSaveName = () => {
     updateProfile({ name: name.trim() });
@@ -96,8 +161,42 @@ export function PerfilPage() {
       <Card className="mb-4 border-0 shadow-soft overflow-hidden">
         <div className="h-20 gradient-primary" />
         <CardContent className="relative pt-0">
-          <div className="w-20 h-20 rounded-full bg-card border-4 border-card flex items-center justify-center -mt-10 mb-4 shadow-soft">
-            <User className="w-10 h-10 text-primary" />
+          {/* Avatar with upload */}
+          <div className="relative w-20 h-20 -mt-10 mb-4 group">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+            <Avatar 
+              className="w-20 h-20 border-4 border-card shadow-soft cursor-pointer transition-transform group-hover:scale-105"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <AvatarImage src={profile.avatarUrl} alt="Foto de perfil" />
+              <AvatarFallback className="bg-card">
+                <User className="w-10 h-10 text-primary" />
+              </AvatarFallback>
+            </Avatar>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow-md"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </Button>
+            {profile.avatarUrl && (
+              <Button
+                size="icon"
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-6 w-6 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={handleRemoveImage}
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            )}
           </div>
 
           {/* Name */}
