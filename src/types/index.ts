@@ -107,6 +107,7 @@ export interface UserProfile {
   email?: string;
   monthlyGoal: number;
   createdAt: Date;
+  avatarUrl?: string;
 }
 
 // Settings Types

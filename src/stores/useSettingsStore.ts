@@ -32,6 +32,7 @@ const defaultProfile: UserProfile = {
   email: undefined,
   monthlyGoal: 3000,
   createdAt: new Date(),
+  avatarUrl: undefined,
 };
 
 export const useSettingsStore = create<SettingsStore>()(
