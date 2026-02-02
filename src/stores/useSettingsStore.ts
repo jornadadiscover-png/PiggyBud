@@ -25,6 +25,9 @@ const defaultSettings: AppSettings = {
   weeklyReportEnabled: true,
   pinEnabled: false,
   pin: undefined,
+  autoReadEnabled: false,
+  autoAddTransactions: false,
+  lastAutoReadAt: undefined,
 };
 
 const defaultProfile: UserProfile = {

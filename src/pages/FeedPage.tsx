@@ -6,15 +6,17 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TransactionCard } from '@/components/TransactionCard';
 import { SimulateNotificationDialog } from '@/components/SimulateNotificationDialog';
 import { AddTransactionDialog } from '@/components/AddTransactionDialog';
+import { PasteNotificationDialog } from '@/components/PasteNotificationDialog';
 import { MascotAvatar } from '@/components/MascotAvatar';
 import { DailyQuote } from '@/components/DailyQuote';
-import { TrendingUp, TrendingDown, Wallet, Bell, Plus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Bell, Plus, ClipboardPaste } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function FeedPage() {
   const [showSimulate, setShowSimulate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [showPaste, setShowPaste] = useState(false);
   const { transactions, getTotalByType } = useTransactionStore();
   const { profile } = useSettingsStore();
 
@@ -126,14 +128,22 @@ export function FeedPage() {
         <DailyQuote />
       </div>
 
-      {/* Test Button */}
-      <div className="px-4 py-4">
+      {/* Action Buttons */}
+      <div className="px-4 py-4 flex gap-3">
+        <Button
+          onClick={() => setShowPaste(true)}
+          variant="outline"
+          className="flex-1 rounded-2xl h-12"
+        >
+          <ClipboardPaste className="w-5 h-5 mr-2" />
+          Colar Notificação
+        </Button>
         <Button
           onClick={() => setShowSimulate(true)}
-          className="w-full gradient-primary text-primary-foreground rounded-2xl h-12 shadow-soft"
+          className="flex-1 gradient-primary text-primary-foreground rounded-2xl h-12 shadow-soft"
         >
           <Bell className="w-5 h-5 mr-2" />
-          Simular Notificação Bancária
+          Simular
         </Button>
       </div>
 
@@ -183,6 +193,7 @@ export function FeedPage() {
       {/* Dialogs */}
       <SimulateNotificationDialog open={showSimulate} onOpenChange={setShowSimulate} />
       <AddTransactionDialog open={showAdd} onOpenChange={setShowAdd} />
+      <PasteNotificationDialog open={showPaste} onOpenChange={setShowPaste} />
     </div>
   );
 }

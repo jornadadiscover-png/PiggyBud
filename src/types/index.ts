@@ -119,6 +119,10 @@ export interface AppSettings {
   weeklyReportEnabled: boolean;
   pinEnabled: boolean;
   pin?: string;
+  // Configurações de leitura automática de notificações
+  autoReadEnabled: boolean;
+  autoAddTransactions: boolean;
+  lastAutoReadAt?: Date;
 }
 
 // Achievement/Badge Types
