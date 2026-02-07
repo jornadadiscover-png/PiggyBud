@@ -1,320 +1,221 @@
 
-# Plano: Leitura Automatica de Notificacoes Bancarias
+
+# Plano: Rebranding para Piggy Bud + Plano Premium com Stripe
 
 ## Visao Geral
 
-Este plano implementa **duas funcionalidades complementares**:
-
-1. **Leitura Automatica (Android APK)**: Usando NotificationListenerService via Capacitor
-2. **Parsing Manual (Fallback)**: Usuario cola o texto da notificacao e o app extrai os dados
-
----
-
-## PARTE 1: Sistema de Parsing de Notificacoes Bancarias
-
-### 1.1 Criar Engine de Parsing
-
-Criar arquivo `src/lib/notification-parser.ts` com:
-
-**Funcao principal**: `parseNotification(text: string)`
-
-Retorna:
-```text
-{
-  bank: Bank | null,
-  amount: number | null,
-  merchant: string | null,
-  type: 'expense' | 'income',
-  confidence: 'high' | 'medium' | 'low'
-}
-```
-
-**Padroes de Regex por banco:**
-
-| Banco | Padrao de Notificacao | Regex |
-|-------|----------------------|-------|
-| Nubank | "Compra aprovada R$ 50,00 em IFOOD" | `/compra.*?R\$\s*([\d.,]+).*?em\s+(.+)/i` |
-| Itau | "Compra no debito R$ 35,90 UBER" | `/compra.*?R\$\s*([\d.,]+)\s+(.+)/i` |
-| C6 | "Pagamento de R$ 120,00 para Mercado Livre" | `/pagamento.*?R\$\s*([\d.,]+).*?para\s+(.+)/i` |
-| Inter | "Voce pagou R$ 45,00 em AMAZON" | `/pagou.*?R\$\s*([\d.,]+).*?em\s+(.+)/i` |
-| Bradesco | "Compra aprovada R$80,00 PADARIA" | `/compra.*?R\$\s*([\d.,]+)\s*(.+)/i` |
-| BB | "Debito autorizado R$ 25,00 - FARMACIA" | `/debito.*?R\$\s*([\d.,]+).*?-\s*(.+)/i` |
-| Caixa | "Compra cartao R$ 100,00 SUPERMERCADO" | `/compra.*?R\$\s*([\d.,]+)\s+(.+)/i` |
-| Santander | "Compra aprovada R$ 60,00 RESTAURANTE" | `/compra.*?R\$\s*([\d.,]+)\s+(.+)/i` |
-| Mercado Pago | "Pagamento de R$ 30,00 para LOJA X" | `/pagamento.*?R\$\s*([\d.,]+).*?para\s+(.+)/i` |
-| PagBank | "Pagamento R$ 55,00 enviado para LOJA" | `/pagamento.*?R\$\s*([\d.,]+).*?para\s+(.+)/i` |
-| PicPay | "Voce pagou R$ 20,00 para @usuario" | `/pagou.*?R\$\s*([\d.,]+).*?para\s+(.+)/i` |
-
-**Deteccao de banco por package name:**
-
-```text
-bankPackages = {
-  'com.nu.production': 'nubank',
-  'com.itau': 'itau',
-  'br.com.bradesco': 'bradesco',
-  'br.com.bb.android': 'bb',
-  'br.com.caixa': 'caixa',
-  'com.santander': 'santander',
-  'com.c6bank.app': 'c6',
-  'br.com.intermedium': 'inter',
-  'br.com.bradesco.next': 'next',
-  'com.mercadopago.wallet': 'mercadopago',
-  'br.com.uol.ps.myaccount': 'pagbank',
-  'com.picpay': 'picpay'
-}
-```
-
-**Categorizacao automatica por merchant:**
-
-```text
-categoryKeywords = {
-  alimentacao: ['ifood', 'uber eats', 'rappi', 'restaurante', 'padaria', 'lanchonete', 'mcdonalds', 'burger', 'pizza'],
-  transporte: ['uber', '99', 'cabify', 'posto', 'shell', 'ipiranga', 'gasolina'],
-  compras: ['amazon', 'shopee', 'mercado livre', 'magazine', 'americanas', 'casas bahia'],
-  lazer: ['netflix', 'spotify', 'steam', 'cinema', 'ingresso'],
-  saude: ['farmacia', 'drogasil', 'drogaria', 'pague menos'],
-  moradia: ['luz', 'agua', 'gas', 'aluguel', 'condominio']
-}
-```
-
-### 1.2 Criar Componente de Parsing Manual
-
-Criar `src/components/PasteNotificationDialog.tsx`:
-
-**UI:**
-```text
-+------------------------------------------+
-|  📋 Colar Notificacao                    |
-+------------------------------------------+
-|                                          |
-|  Cole o texto da notificacao:            |
-|  +------------------------------------+  |
-|  |                                    |  |
-|  |  [Textarea grande]                 |  |
-|  |                                    |  |
-|  +------------------------------------+  |
-|                                          |
-|  Exemplo: "Compra aprovada R$ 50,00      |
-|  em IFOOD"                               |
-|                                          |
-|  --- Preview do Parsing ---              |
-|  Banco: Nubank                           |
-|  Valor: R$ 50,00                         |
-|  Local: iFood                            |
-|  Categoria: Alimentacao                  |
-|                                          |
-|  [  Adicionar Transacao  ]               |
-+------------------------------------------+
-```
-
-**Funcionalidades:**
-- Textarea para colar texto
-- Preview em tempo real do parsing
-- Botao para confirmar e adicionar transacao
-- Edicao manual se parsing nao for perfeito
+Este plano abrange tres grandes areas:
+1. **Rebranding completo** de "FinFunny" para "Piggy Bud"
+2. **Uso da imagem do porquinho como logo/mascote/favicon**
+3. **Melhores praticas de controle financeiro + Plano Premium com Stripe**
 
 ---
 
-## PARTE 2: Leitura Automatica via Capacitor (Android)
+## PARTE 1: Rebranding "FinFunny" para "Piggy Bud"
 
-### 2.1 Arquitetura
-
-```text
-+-------------------+     +----------------------+
-|  Android System   |     |   FinFunny App       |
-|  Notifications    |---->|   (Capacitor)        |
-+-------------------+     +----------------------+
-         |                         |
-         v                         v
-+-------------------+     +----------------------+
-| NotificationList- |     | notification-parser  |
-| enerService       |---->| (regex engine)       |
-+-------------------+     +----------------------+
-                                   |
-                                   v
-                          +----------------------+
-                          | useTransactionStore  |
-                          | (auto add)           |
-                          +----------------------+
-```
-
-### 2.2 Configuracao do Capacitor
-
-**Nota importante**: O plugin `capacitor-notificationlistener` foi arquivado. Vamos criar uma implementacao customizada usando codigo nativo Android.
-
-**Arquivos a criar:**
-
-1. `src/lib/notification-service.ts` - Wrapper TypeScript
-2. Instrucoes para o usuario configurar no Android Studio apos exportar
-
-**Implementacao Web (para testes):**
-
-Criar um servico que funciona na web para testes e no Android real:
-
-```text
-NotificationService {
-  - isAvailable(): boolean  // true em Android, false em web
-  - hasPermission(): Promise<boolean>
-  - requestPermission(): Promise<boolean>
-  - startListening(): void
-  - stopListening(): void
-  - onNotification(callback): void
-}
-```
-
-### 2.3 UI de Configuracao
-
-Adicionar em `ConfigPage.tsx`:
-
-**Secao "Leitura Automatica":**
-```text
-+------------------------------------------+
-|  🔔 Leitura Automatica de Notificacoes   |
-+------------------------------------------+
-|                                          |
-|  Status: [🟢 Ativo / 🔴 Inativo]          |
-|                                          |
-|  [  Ativar Leitura Automatica  ]         |
-|                                          |
-|  ⚠️ Apenas disponivel no app Android     |
-|                                          |
-|  Bancos monitorados:                     |
-|  [x] Nubank  [x] Itau  [x] C6            |
-|  [x] Inter   [ ] BB    [ ] Bradesco      |
-+------------------------------------------+
-```
-
-### 2.4 Configuracao no Settings Store
-
-Adicionar ao `AppSettings`:
-
-```text
-autoReadEnabled: boolean           // Leitura automatica ativada
-autoReadPermissionGranted: boolean // Permissao concedida
-lastAutoReadAt?: Date              // Ultima leitura
-autoAddTransactions: boolean       // Adicionar automaticamente ou pedir confirmacao
-```
-
----
-
-## PARTE 3: Fluxo do Usuario
-
-### 3.1 Primeira Configuracao
-
-```text
-1. Usuario abre Configuracoes
-2. Ve secao "Leitura Automatica"
-3. Clica em "Ativar"
-4. Sistema verifica se e Android nativo
-   - Se sim: solicita permissao de NotificationListener
-   - Se nao: mostra opcao de "Colar Notificacao"
-5. Usuario concede permissao
-6. Sistema comeca a monitorar notificacoes
-```
-
-### 3.2 Quando Chega Notificacao
-
-```text
-1. App recebe notificacao
-2. Verifica se e de um banco monitorado
-3. Passa texto pelo parser
-4. Se parsing bem-sucedido:
-   - autoAddTransactions=true: adiciona automaticamente
-   - autoAddTransactions=false: mostra toast perguntando
-5. Exibe reacao do mascote
-6. Toast com resumo da transacao
-```
-
-### 3.3 Fallback Manual
-
-Se leitura automatica nao disponivel ou nao ativada:
-
-```text
-1. Usuario recebe notificacao no celular
-2. Copia o texto
-3. Abre FinFunny
-4. Clica no botao "Colar Notificacao"
-5. Cola o texto
-6. App faz o parsing
-7. Usuario confirma e adiciona
-```
-
----
-
-## Arquivos a Criar
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `src/lib/notification-parser.ts` | Engine de parsing com regex |
-| `src/lib/notification-service.ts` | Servico de leitura de notificacoes |
-| `src/components/PasteNotificationDialog.tsx` | Dialog para colar notificacao |
-| `src/hooks/useNotificationListener.ts` | Hook para gerenciar listener |
-
-## Arquivos a Modificar
+### 1.1 Arquivos com texto "FinFunny" a substituir
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/types/index.ts` | Adicionar tipos de parsing e notificacao |
-| `src/stores/useSettingsStore.ts` | Adicionar configs de leitura automatica |
-| `src/pages/ConfigPage.tsx` | Adicionar secao de leitura automatica |
-| `src/pages/FeedPage.tsx` | Adicionar botao "Colar Notificacao" |
-| `capacitor.config.json` | Adicionar configs de plugins |
+| `index.html` | title, meta tags (description, author, og:title, og:description, twitter:site) |
+| `vite.config.ts` | manifest name, short_name, description |
+| `capacitor.config.json` | appName |
+| `src/index.css` | Comentario do design system |
+| `src/pages/InstallPage.tsx` | 4 referencias textuais |
+| `src/components/ExportReportDialog.tsx` | titulo do relatorio, header, footer (5 referencias) |
+| `src/stores/useTransactionStore.ts` | nome do persist storage ("finfunny-transactions" -> "piggy-bud-transactions") |
+| `src/stores/useSettingsStore.ts` | nome do persist storage ("finfunny-settings" -> "piggy-bud-settings") |
+
+### 1.2 Adicionar nome "Piggy Bud" na pagina inicial (FeedPage)
+
+Adicionar o logo + nome na header da FeedPage, criando uma identidade visual forte ao abrir o app.
+
+---
+
+## PARTE 2: Logo, Favicon e Mascote
+
+### 2.1 Copiar imagem do porquinho
+
+- Copiar `user-uploads://20260204_102159_0000.png` para `public/piggy-bud-logo.png`
+- Copiar para `src/assets/piggy-bud-logo.png` (para importacao em componentes React)
+
+### 2.2 Gerar favicon e icones PWA
+
+- Usar a imagem como base para `public/favicon.ico` (referencia no index.html)
+- Substituir `public/pwa-192x192.png` e `public/pwa-512x512.png` com a nova imagem
+- Substituir `public/apple-touch-icon.png` com a nova imagem
+
+### 2.3 Atualizar o MascotAvatar
+
+Atualmente o mascote usa emojis. Vamos atualizar para usar a imagem do porquinho como avatar principal, mantendo os emojis como expressoes sobrepostas.
+
+### 2.4 Atualizar PinLockScreen
+
+Substituir o icone de cadeado pela imagem do porquinho na tela de PIN.
+
+---
+
+## PARTE 3: Melhores Praticas de Controle Financeiro
+
+### 3.1 Funcionalidades a adicionar (Gratuitas)
+
+| Funcionalidade | Descricao |
+|----------------|-----------|
+| **Orcamento por categoria** | Definir limites de gasto por categoria (alimentacao, transporte, etc.) |
+| **Indicador de saude financeira** | Score visual baseado em receitas vs despesas, habitos e metas |
+| **Transacoes recorrentes** | Marcar despesas fixas (aluguel, Netflix, etc.) que se repetem todo mes |
+
+### 3.2 Funcionalidades Premium (Stripe)
+
+| Funcionalidade | Descricao |
+|----------------|-----------|
+| **Relatorios avancados com IA** | Insights personalizados usando Lovable AI (ex: "Voce gasta 40% mais em alimentacao nas sextas") |
+| **Exportar PDF/Excel** | Exportacao de relatorios em formatos profissionais |
+| **Metas ilimitadas** | No free: 1 meta mensal. Premium: metas por categoria, metas de economia, metas de investimento |
+| **Leitura automatica de notificacoes** | A leitura automatica (Android) sera Premium |
+| **Categorias personalizadas** | Criar categorias proprias alem das padrao |
+| **Historico completo** | Free: 3 meses. Premium: historico ilimitado |
+| **Desafios exclusivos** | Desafios Premium com recompensas especiais |
+| **Sem anuncios** | Remover banners promocionais (futuro) |
+
+---
+
+## PARTE 4: Implementacao do Stripe Premium
+
+### 4.1 Habilitar Stripe
+
+Usar a ferramenta de integracao Stripe do Lovable para configurar a conexao.
+
+### 4.2 Criar sistema de assinatura
+
+- Criar produto "Piggy Bud Premium" no Stripe
+- Plano mensal e anual
+- Pagina de upgrade dentro do app
+- Gate de funcionalidades premium
+
+### 4.3 Criar Premium Store
+
+Novo store `src/stores/usePremiumStore.ts`:
+
+```text
+PremiumStore {
+  isPremium: boolean
+  subscriptionId: string | null
+  expiresAt: Date | null
+  checkPremiumStatus(): void
+  upgrade(): void
+}
+```
+
+### 4.4 UI de Premium
+
+- Pagina `/premium` com beneficios e botao de assinatura
+- Badge "PRO" nos recursos premium
+- Lock overlay nas funcionalidades premium com CTA de upgrade
+
+---
+
+## PARTE 5: Arquitetura dos Arquivos
+
+### Arquivos a CRIAR
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `public/piggy-bud-logo.png` | Logo principal (copia da imagem uploaded) |
+| `src/assets/piggy-bud-logo.png` | Logo para import em componentes |
+| `src/stores/usePremiumStore.ts` | Store de estado premium |
+| `src/components/PremiumBadge.tsx` | Badge "PRO" para marcar recursos premium |
+| `src/components/PremiumGate.tsx` | Wrapper que bloqueia conteudo para usuarios free |
+| `src/pages/PremiumPage.tsx` | Pagina de upgrade com beneficios e checkout |
+| `src/components/BudgetByCategoryCard.tsx` | Card de orcamento por categoria |
+| `src/components/FinancialHealthScore.tsx` | Score de saude financeira |
+
+### Arquivos a MODIFICAR
+
+| Arquivo | Mudanca |
+|---------|---------|
+| `index.html` | Rebranding + novo favicon |
+| `vite.config.ts` | Rebranding manifest |
+| `capacitor.config.json` | Rebranding appName |
+| `src/index.css` | Comentario rebranding |
+| `src/App.tsx` | Adicionar rota /premium |
+| `src/pages/Index.tsx` | Adicionar tab premium ou integracao |
+| `src/pages/FeedPage.tsx` | Logo + nome no header, indicador de saude financeira |
+| `src/pages/InstallPage.tsx` | Rebranding textos + logo |
+| `src/pages/ConfigPage.tsx` | Leitura automatica como premium |
+| `src/pages/PerfilPage.tsx` | Badge premium, botao upgrade |
+| `src/pages/RelatoriosPage.tsx` | Gate premium em relatorios avancados |
+| `src/components/MascotAvatar.tsx` | Usar imagem do porquinho |
+| `src/components/PinLockScreen.tsx` | Logo do porquinho |
+| `src/components/ExportReportDialog.tsx` | Rebranding + gate premium |
+| `src/components/ChallengesCard.tsx` | Desafios premium |
+| `src/components/BottomNav.tsx` | Possivel icone premium |
+| `src/stores/useTransactionStore.ts` | Rebranding persist name |
+| `src/stores/useSettingsStore.ts` | Rebranding persist name + configs de orcamento |
+| `src/types/index.ts` | Tipos de orcamento por categoria e premium |
+
+---
+
+## Ordem de Implementacao
+
+1. **Copiar imagem e atualizar favicons/icones PWA**
+2. **Rebranding de texto em todos os arquivos** (FinFunny -> Piggy Bud)
+3. **Atualizar MascotAvatar e PinLockScreen** com a imagem do porquinho
+4. **Adicionar logo + nome na FeedPage**
+5. **Habilitar Stripe** via ferramenta Lovable
+6. **Criar PremiumStore e componentes de gate**
+7. **Criar pagina Premium** com beneficios e checkout
+8. **Adicionar orcamento por categoria** (feature gratuita)
+9. **Adicionar indicador de saude financeira** (feature gratuita)
+10. **Aplicar gates premium** nos recursos corretos
+11. **Testar fluxo completo**
 
 ---
 
 ## Detalhes Tecnicos
 
-### Regex de Parsing
+### Premium Gate Pattern
 
 ```text
-Padrao generico para valor:
-/R\$\s*([\d.,]+)/
+<PremiumGate feature="advanced-reports">
+  {/* Conteudo premium fica aqui */}
+  <AdvancedReportsSection />
+</PremiumGate>
 
-Padrao generico para estabelecimento:
-/(?:em|para|no|na)\s+([A-Za-z0-9\s]+)/i
-
-Normalizacao de valor:
-"50,00" -> 50.00
-"1.234,56" -> 1234.56
+// Se usuario nao for premium:
+// Mostra preview embaçado + botao "Desbloquear com Premium"
 ```
 
-### Deteccao de Tipo (Despesa vs Receita)
+### Score de Saude Financeira
 
 ```text
-Palavras-chave de RECEITA:
-- "recebeu"
-- "pix recebido"
-- "deposito"
-- "transferencia recebida"
-- "credito"
+Calculo:
+- Receitas > Despesas: +30 pontos
+- Dentro da meta mensal: +25 pontos
+- Registra transacoes regularmente: +15 pontos
+- Tem fundo de emergencia (meta de economia): +15 pontos
+- Diversificacao de receitas: +15 pontos
 
-Palavras-chave de DESPESA:
-- "compra"
-- "pagamento"
-- "pagou"
-- "debito"
-- "saque"
+Score: 0-100
+- 80-100: Excelente (verde)
+- 60-79: Bom (azul)
+- 40-59: Atencao (amarelo)
+- 0-39: Critico (vermelho)
 ```
 
-### Integracao com Android Nativo
+### Orcamento por Categoria
 
-Para funcionar no APK Android, o usuario precisara:
+```text
+Novo tipo no types/index.ts:
 
-1. Exportar projeto para GitHub
-2. Abrir no Android Studio
-3. Adicionar permissoes no AndroidManifest.xml
-4. Implementar NotificationListenerService
-5. Compilar APK
+interface CategoryBudget {
+  category: Category
+  limit: number    // R$ limite mensal
+  spent: number    // R$ gasto atual
+}
+```
 
-Forneceremos um guia passo-a-passo detalhado.
+### Migracao de Dados
 
----
+**Importante**: Ao mudar os nomes do localStorage de `finfunny-transactions` para `piggy-bud-transactions`, sera necessario criar uma funcao de migracao que copia os dados antigos para as novas chaves, para que usuarios existentes nao percam seus dados.
 
-## Resultado Esperado
-
-1. **Parser funcional** para notificacoes dos 12 bancos suportados
-2. **Dialog de colar notificacao** funcional em qualquer plataforma
-3. **Servico de leitura** preparado para Android nativo
-4. **Secao de configuracao** para gerenciar leitura automatica
-5. **Integracao com mascote** - reacoes quando transacao e adicionada automaticamente
-6. **Documentacao** de como ativar no APK Android
