@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
+import piggyLogo from '@/assets/piggy-bud-logo.png';
 
 type MascotMood = 'happy' | 'normal' | 'worried' | 'scared' | 'dramatic';
 
@@ -38,9 +39,9 @@ const moodConfig: Record<MascotMood, { emoji: string; color: string; message: st
 };
 
 const sizeClasses = {
-  sm: 'w-10 h-10 text-xl',
-  md: 'w-14 h-14 text-2xl',
-  lg: 'w-20 h-20 text-4xl',
+  sm: { container: 'w-10 h-10', emoji: 'text-[10px]', img: 'w-8 h-8' },
+  md: { container: 'w-14 h-14', emoji: 'text-xs', img: 'w-11 h-11' },
+  lg: { container: 'w-20 h-20', emoji: 'text-base', img: 'w-16 h-16' },
 };
 
 export function MascotAvatar({ size = 'md', showMessage = true }: MascotAvatarProps) {
@@ -63,13 +64,20 @@ export function MascotAvatar({ size = 'md', showMessage = true }: MascotAvatarPr
   }, [goalProgress]);
 
   const config = moodConfig[mood];
+  const sizes = sizeClasses[size];
 
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center shadow-soft transition-all duration-500 animate-scale-in`}
+        className={`${sizes.container} rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center shadow-soft transition-all duration-500 animate-scale-in relative`}
       >
-        <span className="drop-shadow-sm transition-transform duration-300 hover:scale-110">
+        <img 
+          src={piggyLogo} 
+          alt="Piggy Bud" 
+          className={`${sizes.img} rounded-full object-cover`}
+        />
+        {/* Mood emoji overlay */}
+        <span className={`absolute -bottom-1 -right-1 ${sizes.emoji} bg-card rounded-full p-0.5 shadow-sm`}>
           {config.emoji}
         </span>
       </div>

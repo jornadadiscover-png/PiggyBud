@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Lock, Delete, Eye, EyeOff } from 'lucide-react';
+import { Delete, Eye, EyeOff } from 'lucide-react';
+import piggyLogo from '@/assets/piggy-bud-logo.png';
 
 interface PinLockScreenProps {
   mode: 'verify' | 'setup';
@@ -70,10 +70,10 @@ export function PinLockScreen({ mode, onSuccess }: PinLockScreenProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background safe-top safe-bottom">
-      {/* Header */}
+      {/* Header with Piggy Bud logo */}
       <div className="flex flex-col items-center mb-8">
-        <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center mb-4 shadow-glow">
-          <Lock className="w-10 h-10 text-primary-foreground" />
+        <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center mb-4 shadow-glow p-1">
+          <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-full object-cover" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">
           {mode === 'setup' 
@@ -129,7 +129,7 @@ export function PinLockScreen({ mode, onSuccess }: PinLockScreenProps) {
             {num}
           </Button>
         ))}
-        <div /> {/* Empty space */}
+        <div />
         <Button
           variant="outline"
           className="w-16 h-16 text-2xl font-semibold rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all duration-200"

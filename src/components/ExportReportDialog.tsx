@@ -41,7 +41,6 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // Category breakdown (expenses only)
     const categoryTotals: Record<string, number> = {};
     monthTransactions
       .filter((t) => t.type === 'expense')
@@ -82,7 +81,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Relatório FinFunny - ${monthName}</title>
+          <title>Relatório Piggy Bud - ${monthName}</title>
           <style>
             * { box-sizing: border-box; margin: 0; padding: 0; }
             body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #333; }
@@ -116,7 +115,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         </head>
         <body>
           <div class="header">
-            <h1>😄 FinFunny - Relatório Financeiro</h1>
+            <h1>🐷 Piggy Bud - Relatório Financeiro</h1>
             <p>${profile.name ? `${profile.name} • ` : ''}${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</p>
           </div>
           
@@ -181,7 +180,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           </div>
 
           <div class="footer">
-            Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • FinFunny App
+            Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • Piggy Bud App
           </div>
         </body>
       </html>
@@ -203,11 +202,9 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           </DialogTitle>
         </DialogHeader>
 
-        {/* Preview */}
         <div ref={reportRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
-          {/* Header */}
           <div className="text-center pb-3 border-b">
-            <h2 className="text-lg font-bold text-primary">😄 FinFunny</h2>
+            <h2 className="text-lg font-bold text-primary">🐷 Piggy Bud</h2>
             <p className="text-sm text-muted-foreground capitalize">
               {profile.name ? `${profile.name} • ` : ''}{monthName}
             </p>
@@ -239,9 +236,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           <div>
             <h3 className="text-sm font-semibold mb-2">📊 Gastos por Categoria</h3>
             {reportData.categories.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                Nenhuma despesa registrada
-              </p>
+              <p className="text-xs text-muted-foreground text-center py-4">Nenhuma despesa registrada</p>
             ) : (
               <div className="space-y-2">
                 {reportData.categories.map((cat) => (
@@ -268,9 +263,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           <div>
             <h3 className="text-sm font-semibold mb-2">📋 Últimas Transações</h3>
             {reportData.transactions.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                Nenhuma transação registrada
-              </p>
+              <p className="text-xs text-muted-foreground text-center py-4">Nenhuma transação registrada</p>
             ) : (
               <div className="space-y-1 max-h-40 overflow-y-auto">
                 {reportData.transactions.slice(0, 10).map((t) => (
@@ -296,7 +289,6 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
           </div>
         </div>
 
-        {/* Actions - Only Print/PDF button now */}
         <div className="pt-4 border-t">
           <Button className="w-full" onClick={handlePrint}>
             <Printer className="w-4 h-4 mr-2" />

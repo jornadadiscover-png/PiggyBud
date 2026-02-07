@@ -9,9 +9,11 @@ import { AddTransactionDialog } from '@/components/AddTransactionDialog';
 import { PasteNotificationDialog } from '@/components/PasteNotificationDialog';
 import { MascotAvatar } from '@/components/MascotAvatar';
 import { DailyQuote } from '@/components/DailyQuote';
+import { FinancialHealthScore } from '@/components/FinancialHealthScore';
 import { TrendingUp, TrendingDown, Wallet, Bell, Plus, ClipboardPaste } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import piggyLogo from '@/assets/piggy-bud-logo.png';
 
 export function FeedPage() {
   const [showSimulate, setShowSimulate] = useState(false);
@@ -40,14 +42,16 @@ export function FeedPage() {
     <div className="flex flex-col min-h-screen pb-20">
       {/* Header */}
       <header className="gradient-primary text-primary-foreground p-6 pt-8 rounded-b-3xl shadow-glow">
+        {/* Logo + Brand */}
         <div className="flex justify-between items-start mb-4">
-          <div>
-            <p className="text-primary-foreground/80 text-sm">
-              {format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </p>
-            <h1 className="text-2xl font-bold mt-1">
-              Olá{profile.name ? `, ${profile.name.split(' ')[0]}` : ''}! 👋
-            </h1>
+          <div className="flex items-center gap-3">
+            <img src={piggyLogo} alt="Piggy Bud" className="w-10 h-10 rounded-full shadow-md border-2 border-primary-foreground/30" />
+            <div>
+              <h1 className="text-xl font-bold leading-tight">Piggy Bud</h1>
+              <p className="text-primary-foreground/70 text-xs">
+                {format(today, "EEEE, d 'de' MMMM", { locale: ptBR })}
+              </p>
+            </div>
           </div>
           <Button 
             size="icon" 
@@ -59,7 +63,12 @@ export function FeedPage() {
           </Button>
         </div>
 
-        {/* Mascot - NEW! */}
+        {/* Greeting */}
+        <p className="text-primary-foreground/90 text-sm mb-3">
+          Olá{profile.name ? `, ${profile.name.split(' ')[0]}` : ''}! 👋
+        </p>
+
+        {/* Mascot */}
         <div className="mb-4 p-3 rounded-2xl bg-card/10 backdrop-blur-sm">
           <MascotAvatar size="md" showMessage={true} />
         </div>
@@ -123,9 +132,14 @@ export function FeedPage() {
         </Card>
       </header>
 
-      {/* Daily Quote - NEW! */}
+      {/* Daily Quote */}
       <div className="px-4 pt-4">
         <DailyQuote />
+      </div>
+
+      {/* Financial Health Score */}
+      <div className="px-4 pt-3">
+        <FinancialHealthScore />
       </div>
 
       {/* Action Buttons */}
