@@ -12,6 +12,7 @@ export interface Transaction {
   type: TransactionType;
   mood: string;
   bank?: Bank;
+  isRecurring?: boolean;
 }
 
 // Category Types
@@ -113,16 +114,23 @@ export interface UserProfile {
 // Settings Types
 export interface AppSettings {
   enabledBanks: Bank[];
-  reminderTime: string; // HH:mm format
+  reminderTime: string;
   reactionSensitivity: 'low' | 'medium' | 'high';
   dailyReminderEnabled: boolean;
   weeklyReportEnabled: boolean;
   pinEnabled: boolean;
   pin?: string;
-  // Configurações de leitura automática de notificações
   autoReadEnabled: boolean;
   autoAddTransactions: boolean;
   lastAutoReadAt?: Date;
+  // Category budgets
+  categoryBudgets: CategoryBudget[];
+}
+
+// Category Budget
+export interface CategoryBudget {
+  category: Category;
+  limit: number;
 }
 
 // Achievement/Badge Types
@@ -133,3 +141,14 @@ export interface Achievement {
   icon: string;
   unlockedAt?: Date;
 }
+
+// Premium Types
+export type PremiumFeature = 
+  | 'advanced-reports'
+  | 'export-pdf'
+  | 'unlimited-goals'
+  | 'auto-read'
+  | 'custom-categories'
+  | 'full-history'
+  | 'exclusive-challenges'
+  | 'no-ads';

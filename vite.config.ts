@@ -52,11 +52,11 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'FinFunny - Controle Financeiro com Humor',
-        short_name: 'FinFunny',
-        description: 'App de controle financeiro divertido com mascote animado e frases engraçadas!',
+        name: 'Piggy Bud - Controle Financeiro Inteligente',
+        short_name: 'Piggy Bud',
+        description: 'App de controle financeiro pessoal com mascote animado e orçamento inteligente!',
         theme_color: '#8B5CF6',
         background_color: '#0F0F23',
         display: 'standalone',

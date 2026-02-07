@@ -28,6 +28,7 @@ const defaultSettings: AppSettings = {
   autoReadEnabled: false,
   autoAddTransactions: false,
   lastAutoReadAt: undefined,
+  categoryBudgets: [],
 };
 
 const defaultProfile: UserProfile = {
@@ -105,7 +106,7 @@ export const useSettingsStore = create<SettingsStore>()(
       },
     }),
     {
-      name: 'finfunny-settings',
+      name: 'piggy-bud-settings',
       partialize: (state) => ({
         settings: state.settings,
         profile: state.profile,
