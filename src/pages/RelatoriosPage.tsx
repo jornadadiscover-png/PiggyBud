@@ -4,8 +4,13 @@ import { useTransactionStore } from '@/stores/useTransactionStore';
 import { Category, categoryLabels, categoryColors } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } from 'recharts';
 import { TrendingUp, TrendingDown, Trophy } from 'lucide-react';
+import { PremiumGate } from '@/components/PremiumGate';
 
-export function RelatoriosPage() {
+interface RelatoriosPageProps {
+  onNavigateToPremium?: () => void;
+}
+
+export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
   const { transactions, getTotalByCategory } = useTransactionStore();
 
   const now = new Date();
@@ -14,10 +19,8 @@ export function RelatoriosPage() {
 
   // Category breakdown for current month - ONLY EXPENSES
   const categoryData = useMemo(() => {
-    // Only expense categories (exclude income categories like salario, freelance, investimentos)
     const expenseCategories: Category[] = ['alimentacao', 'transporte', 'moradia', 'saude', 'educacao', 'lazer', 'compras', 'outros'];
     
-    // Filter transactions for current month that are EXPENSES only
     const monthExpenses = transactions.filter((t) => {
       const d = new Date(t.date);
       return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -123,7 +126,7 @@ export function RelatoriosPage() {
         </Card>
       </div>
 
-      {/* Category Pie Chart */}
+      {/* Category Pie Chart - FREE */}
       <Card className="mb-4 border-0 shadow-soft">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Gastos por Categoria</CardTitle>
@@ -173,82 +176,86 @@ export function RelatoriosPage() {
         </CardContent>
       </Card>
 
-      {/* Monthly Evolution */}
-      <Card className="mb-4 border-0 shadow-soft">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Evolução Mensal</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData}>
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
-                  contentStyle={{ 
-                    borderRadius: '12px', 
-                    border: 'none', 
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)' 
-                  }}
-                />
-                <Bar dataKey="receitas" fill="hsl(145 70% 45%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="despesas" fill="hsl(0 84% 60%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-6 mt-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-success" />
-              <span className="text-xs text-muted-foreground">Receitas</span>
+      {/* Monthly Evolution - PREMIUM */}
+      <PremiumGate feature="advanced-reports" onUpgrade={onNavigateToPremium}>
+        <Card className="mb-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Evolução Mensal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip
+                    formatter={(value: number) => `R$ ${value.toLocaleString('pt-BR')}`}
+                    contentStyle={{ 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)' 
+                    }}
+                  />
+                  <Bar dataKey="receitas" fill="hsl(145 70% 45%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="despesas" fill="hsl(0 84% 60%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-destructive" />
-              <span className="text-xs text-muted-foreground">Despesas</span>
+            <div className="flex justify-center gap-6 mt-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-success" />
+                <span className="text-xs text-muted-foreground">Receitas</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-destructive" />
+                <span className="text-xs text-muted-foreground">Despesas</span>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </PremiumGate>
 
-      {/* Top Expenses */}
-      <Card className="border-0 shadow-soft">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-warning" />
-            <CardTitle className="text-base">Top 5 Maiores Gastos</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {topExpenses.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-4">
-              Nenhum gasto registrado este mês
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {topExpenses.map((t, index) => (
-                <div key={t.id} className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    index === 0 ? 'bg-warning text-warning-foreground' :
-                    index === 1 ? 'bg-muted text-muted-foreground' :
-                    'bg-muted/50 text-muted-foreground'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{t.merchant}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {categoryLabels[t.category]}
-                    </p>
-                  </div>
-                  <span className="font-bold text-destructive">
-                    R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              ))}
+      {/* Top Expenses - PREMIUM */}
+      <PremiumGate feature="advanced-reports" onUpgrade={onNavigateToPremium}>
+        <Card className="border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-warning" />
+              <CardTitle className="text-base">Top 5 Maiores Gastos</CardTitle>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {topExpenses.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                Nenhum gasto registrado este mês
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {topExpenses.map((t, index) => (
+                  <div key={t.id} className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      index === 0 ? 'bg-warning text-warning-foreground' :
+                      index === 1 ? 'bg-muted text-muted-foreground' :
+                      'bg-muted/50 text-muted-foreground'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{t.merchant}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {categoryLabels[t.category]}
+                      </p>
+                    </div>
+                    <span className="font-bold text-destructive">
+                      R$ {t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PremiumGate>
     </div>
   );
 }

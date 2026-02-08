@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useTransactionStore } from '@/stores/useTransactionStore';
-import { Flame, Trophy, Zap, Target } from 'lucide-react';
+import { Flame, Trophy, Zap, Target, Crown } from 'lucide-react';
+import { PremiumGate } from '@/components/PremiumGate';
 
 interface Challenge {
   id: string;
@@ -10,8 +11,9 @@ interface Challenge {
   description: string;
   icon: React.ReactNode;
   targetDays: number;
-  checkProgress: (transactions: any[]) => number; // Returns progress 0-100
+  checkProgress: (transactions: any[]) => number;
   reward: string;
+  isPremium?: boolean;
 }
 
 const challenges: Challenge[] = [
@@ -30,7 +32,6 @@ const challenges: Challenge[] = [
           t.type === 'expense' &&
           new Date(t.date) >= weekAgo
       );
-      // Less spending = more progress
       if (deliverySpending.length === 0) return 100;
       if (deliverySpending.length <= 2) return 70;
       if (deliverySpending.length <= 5) return 40;
@@ -60,15 +61,18 @@ const challenges: Challenge[] = [
     icon: <Target className="w-4 h-4" />,
     targetDays: 7,
     checkProgress: () => {
-      // This would need actual budget tracking
-      // Simplified: random progress for demo
       return 45;
     },
     reward: '💰 Guardião do Bolso',
+    isPremium: true,
   },
 ];
 
-export function ChallengesCard() {
+interface ChallengesCardProps {
+  onNavigateToPremium?: () => void;
+}
+
+export function ChallengesCard({ onNavigateToPremium }: ChallengesCardProps) {
   const { transactions } = useTransactionStore();
 
   const challengeProgress = useMemo(() => {
@@ -79,6 +83,59 @@ export function ChallengesCard() {
   }, [transactions]);
 
   const completedCount = challengeProgress.filter((c) => c.progress >= 100).length;
+
+  const renderChallenge = (challenge: typeof challengeProgress[0]) => {
+    const isCompleted = challenge.progress >= 100;
+    
+    return (
+      <div
+        key={challenge.id}
+        className={`p-3 rounded-xl transition-all ${
+          isCompleted
+            ? 'bg-success/10 border border-success/20'
+            : 'bg-muted/30'
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={`p-2 rounded-lg ${
+              isCompleted ? 'bg-success/20 text-success' : 'bg-primary/10 text-primary'
+            }`}
+          >
+            {challenge.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <p className="font-medium text-sm">{challenge.title}</p>
+                {challenge.isPremium && (
+                  <Crown className="w-3.5 h-3.5 text-amber-500" />
+                )}
+              </div>
+              {isCompleted && (
+                <span className="text-xs text-success font-medium">
+                  Completo! ✓
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mb-2">
+              {challenge.description}
+            </p>
+            <div className="space-y-1">
+              <Progress
+                value={challenge.progress}
+                className="h-1.5"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>{challenge.progress.toFixed(0)}% completo</span>
+                <span className="text-warning">{challenge.reward}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card className="border-0 shadow-soft">
@@ -99,51 +156,19 @@ export function ChallengesCard() {
         </p>
 
         {challengeProgress.map((challenge) => {
-          const isCompleted = challenge.progress >= 100;
-          
-          return (
-            <div
-              key={challenge.id}
-              className={`p-3 rounded-xl transition-all ${
-                isCompleted
-                  ? 'bg-success/10 border border-success/20'
-                  : 'bg-muted/30'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`p-2 rounded-lg ${
-                    isCompleted ? 'bg-success/20 text-success' : 'bg-primary/10 text-primary'
-                  }`}
-                >
-                  {challenge.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="font-medium text-sm">{challenge.title}</p>
-                    {isCompleted && (
-                      <span className="text-xs text-success font-medium">
-                        Completo! ✓
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {challenge.description}
-                  </p>
-                  <div className="space-y-1">
-                    <Progress
-                      value={challenge.progress}
-                      className="h-1.5"
-                    />
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>{challenge.progress.toFixed(0)}% completo</span>
-                      <span className="text-warning">{challenge.reward}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
+          if (challenge.isPremium) {
+            return (
+              <PremiumGate
+                key={challenge.id}
+                feature="exclusive-challenges"
+                fallbackMessage="Desafio exclusivo para assinantes Premium"
+                onUpgrade={onNavigateToPremium}
+              >
+                {renderChallenge(challenge)}
+              </PremiumGate>
+            );
+          }
+          return renderChallenge(challenge);
         })}
       </CardContent>
     </Card>

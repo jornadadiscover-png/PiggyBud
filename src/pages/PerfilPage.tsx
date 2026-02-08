@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { ChallengesCard } from '@/components/ChallengesCard';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { PremiumGate } from '@/components/PremiumGate';
 
 // Achievements with clear descriptions
 const achievements = [
@@ -26,21 +27,21 @@ const achievements = [
     title: 'Economista', 
     description: 'Fique abaixo da meta mensal por 1 mês', 
     icon: '💰',
-    checkFn: () => false // Would need historical data
+    checkFn: () => false
   },
   { 
     id: '3', 
     title: 'Disciplinado', 
     description: 'Registre gastos por 7 dias seguidos', 
     icon: '📅',
-    checkFn: () => false // Would need date tracking
+    checkFn: () => false
   },
   { 
     id: '4', 
     title: 'Investidor', 
     description: 'Registre uma receita de investimento', 
     icon: '📈',
-    checkFn: (_, transactions: any[]) => 
+    checkFn: (_: number, transactions: any[]) => 
       transactions.some(t => t.category === 'investimentos' && t.type === 'income')
   },
   { 
@@ -48,7 +49,7 @@ const achievements = [
     title: 'Controlador', 
     description: 'Use o app por 30 dias', 
     icon: '🏆',
-    checkFn: () => false // Would need first use date
+    checkFn: () => false
   },
 ];
 
@@ -90,7 +91,11 @@ const processImage = (file: File): Promise<string> => {
   });
 };
 
-export function PerfilPage() {
+interface PerfilPageProps {
+  onNavigateToPremium?: () => void;
+}
+
+export function PerfilPage({ onNavigateToPremium }: PerfilPageProps) {
   const { profile, updateProfile } = useSettingsStore();
   const { transactions } = useTransactionStore();
   const [editingName, setEditingName] = useState(false);
@@ -280,12 +285,12 @@ export function PerfilPage() {
         </CardContent>
       </Card>
 
-      {/* Monthly Challenges - NEW! */}
+      {/* Monthly Challenges */}
       <div className="mb-4">
-        <ChallengesCard />
+        <ChallengesCard onNavigateToPremium={onNavigateToPremium} />
       </div>
 
-      {/* Achievements - Redesigned */}
+      {/* Achievements */}
       <Card className="mb-4 border-0 shadow-soft">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
@@ -348,23 +353,25 @@ export function PerfilPage() {
         </CardContent>
       </Card>
 
-      {/* Actions - Improved Export */}
+      {/* Actions - Export with PremiumGate */}
       <Card className="border-0 shadow-soft">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Dados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <ExportReportDialog
-            trigger={
-              <Button
-                variant="outline"
-                className="w-full justify-start rounded-xl"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exportar Relatório
-              </Button>
-            }
-          />
+          <PremiumGate feature="export-pdf" onUpgrade={onNavigateToPremium}>
+            <ExportReportDialog
+              trigger={
+                <Button
+                  variant="outline"
+                  className="w-full justify-start rounded-xl"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar Relatório
+                </Button>
+              }
+            />
+          </PremiumGate>
           <Button
             variant="ghost"
             className="w-full justify-start rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
