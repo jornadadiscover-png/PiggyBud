@@ -39,7 +39,7 @@ export function PremiumGate({ feature, children, fallbackMessage, onUpgrade }: P
           onClick={onUpgrade}
         >
           <Lock className="w-4 h-4 mr-2" />
-          Desbloquear Premium
+          Ver Premium
         </Button>
       </div>
     </div>

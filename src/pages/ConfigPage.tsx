@@ -11,8 +11,13 @@ import { Smartphone, Bell, Sliders, Lock, Check, BellRing, AlertCircle } from 'l
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { useNotificationListener } from '@/hooks/useNotificationListener';
+import { PremiumGate } from '@/components/PremiumGate';
 
-export function ConfigPage() {
+interface ConfigPageProps {
+  onNavigateToPremium?: () => void;
+}
+
+export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
   const { settings, updateSettings, toggleBank, resetPin } = useSettingsStore();
   const [showPinSetup, setShowPinSetup] = useState(false);
   const { toast } = useToast();
@@ -118,66 +123,68 @@ export function ConfigPage() {
         </CardContent>
       </Card>
 
-      {/* Auto Read Section */}
-      <Card className="mb-4 border-0 shadow-soft">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <BellRing className="w-4 h-4 text-primary" />
-            <CardTitle className="text-base">Leitura Automática</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-muted/50">
-            <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">
-              {isWeb 
-                ? 'Esta funcionalidade só está disponível no app Android nativo. Exporte o projeto e compile o APK para usar.'
-                : 'Monitora notificações bancárias e registra transações automaticamente.'}
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Status</Label>
+      {/* Auto Read Section - PREMIUM */}
+      <PremiumGate feature="auto-read" onUpgrade={onNavigateToPremium}>
+        <Card className="mb-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <BellRing className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base">Leitura Automática</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-muted/50">
+              <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
-                {settings.autoReadEnabled ? '🟢 Ativo' : '🔴 Inativo'}
+                {isWeb 
+                  ? 'Esta funcionalidade só está disponível no app Android nativo. Exporte o projeto e compile o APK para usar.'
+                  : 'Monitora notificações bancárias e registra transações automaticamente.'}
               </p>
             </div>
-            {settings.autoReadEnabled ? (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => updateSettings({ autoReadEnabled: false })}
-              >
-                Desativar
-              </Button>
-            ) : (
-              <Button 
-                size="sm" 
-                onClick={handleEnableAutoRead}
-                disabled={isWeb}
-              >
-                Ativar
-              </Button>
-            )}
-          </div>
 
-          {settings.autoReadEnabled && (
             <div className="flex items-center justify-between">
               <div>
-                <Label>Adicionar automaticamente</Label>
+                <Label>Status</Label>
                 <p className="text-xs text-muted-foreground">
-                  Registra transações sem confirmação
+                  {settings.autoReadEnabled ? '🟢 Ativo' : '🔴 Inativo'}
                 </p>
               </div>
-              <Switch
-                checked={settings.autoAddTransactions}
-                onCheckedChange={(checked) => updateSettings({ autoAddTransactions: checked })}
-              />
+              {settings.autoReadEnabled ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => updateSettings({ autoReadEnabled: false })}
+                >
+                  Desativar
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  onClick={handleEnableAutoRead}
+                  disabled={isWeb}
+                >
+                  Ativar
+                </Button>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {settings.autoReadEnabled && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Adicionar automaticamente</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Registra transações sem confirmação
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.autoAddTransactions}
+                  onCheckedChange={(checked) => updateSettings({ autoAddTransactions: checked })}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PremiumGate>
 
       {/* Notifications Section */}
       <Card className="mb-4 border-0 shadow-soft">
