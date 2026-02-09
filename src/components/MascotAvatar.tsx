@@ -39,9 +39,9 @@ const moodConfig: Record<MascotMood, { emoji: string; color: string; message: st
 };
 
 const sizeClasses = {
-  sm: { container: 'w-10 h-10', emoji: 'text-[10px]', img: 'w-8 h-8' },
-  md: { container: 'w-14 h-14', emoji: 'text-xs', img: 'w-11 h-11' },
-  lg: { container: 'w-20 h-20', emoji: 'text-base', img: 'w-16 h-16' },
+  sm: { container: 'w-10 h-10', emoji: 'text-[10px]', img: 'w-7 h-7' },
+  md: { container: 'w-14 h-14', emoji: 'text-xs', img: 'w-10 h-10' },
+  lg: { container: 'w-20 h-20', emoji: 'text-base', img: 'w-14 h-14' },
 };
 
 export function MascotAvatar({ size = 'md', showMessage = true }: MascotAvatarProps) {
@@ -74,7 +74,7 @@ export function MascotAvatar({ size = 'md', showMessage = true }: MascotAvatarPr
         <img 
           src={piggyLogo} 
           alt="Piggy Bud" 
-          className={`${sizes.img} rounded-full object-cover`}
+          className={`${sizes.img} rounded-full object-contain`}
         />
         {/* Mood emoji overlay */}
         <span className={`absolute -bottom-1 -right-1 ${sizes.emoji} bg-card rounded-full p-0.5 shadow-sm`}>
