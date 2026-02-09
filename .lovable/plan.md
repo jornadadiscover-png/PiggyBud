@@ -1,53 +1,33 @@
 
-# Plano: Correcao de Textos, Nova Imagem e Emojis Contextuais
+# Ajuste da Imagem do Porquinho nos Formatos Redondos
 
-## 1. Corrigir textos cortados no Perfil
+## Problema
+A imagem do porquinho, quando aplicada com `rounded-full` e `object-cover`, tem partes cortadas (orelhas, patas) porque o crop circular remove as bordas da imagem.
 
-Na pagina `PerfilPage.tsx`, as descricoes das conquistas estao com `truncate` (linha 331), o que corta o texto. A correcao sera:
+## Solucao
+Trocar `object-cover` por `object-contain` e reduzir levemente o tamanho da imagem (usando `scale-90` ou padding interno) para que ela caiba inteira dentro do circulo, centralizada.
 
-- **Conquistas**: Remover `truncate` da descricao das conquistas para que o texto apareca completo
-- **Achievement cards**: Permitir que a descricao quebre em multiplas linhas com `text-wrap`
+## Arquivos a Modificar
 
-**Arquivo**: `src/pages/PerfilPage.tsx`
-- Linha 331: trocar `truncate` por `break-words` ou simplesmente remover o truncate
+### 1. `src/components/MascotAvatar.tsx` (linha 77)
+- Trocar `object-cover` por `object-contain`
+- Reduzir os tamanhos da imagem para caber com margem dentro do container circular
+- Tamanhos atualizados: `sm: w-7 h-7`, `md: w-10 h-10`, `lg: w-14 h-14` (reduzidos de w-8/w-11/w-16)
 
----
+### 2. `src/pages/FeedPage.tsx` (linha 48)
+- Header logo: trocar `w-10 h-10` para container com padding e `object-contain`
+- Exemplo: `w-10 h-10 rounded-full ... p-0.5 object-contain`
 
-## 2. Trocar a imagem do porquinho
+### 3. `src/pages/AuthPage.tsx` (linha 69)
+- Trocar `object-cover` implicitamente por `object-contain` e adicionar `p-1` para margem interna
 
-A imagem atual esta em `src/assets/piggy-bud-logo.png`. Sera substituida pela nova imagem fornecida pelo usuario (o porquinho preocupado segurando um cartao).
+### 4. `src/pages/PremiumPage.tsx` (linha 165)
+- Trocar `object-cover` por `object-contain` e adicionar `p-1`
 
-**Acoes**:
-- Copiar `user-uploads://20260208_111235.png` para `src/assets/piggy-bud-logo.png` (substituir)
-- Nenhum outro arquivo precisa ser alterado pois todos ja importam de `@/assets/piggy-bud-logo.png`
+### 5. `src/components/PinLockScreen.tsx` (linha 76)
+- Trocar `object-cover` por `object-contain` (ja tem `p-1` no container)
 
-**Arquivos afetados automaticamente** (sem mudanca de codigo):
-- `MascotAvatar.tsx`, `FeedPage.tsx`, `PremiumPage.tsx`, `AuthPage.tsx`, `PinLockScreen.tsx`, `InstallPage.tsx`
-
----
-
-## 3. Substituir emojis de porquinho por emojis contextuais
-
-Remover todas as ocorrencias do emoji de porquinho e substituir por emojis que facam sentido com a mensagem.
-
-### personality-engine.ts
-| Linha | Atual | Novo |
-|-------|-------|------|
-| 136 | `Mais um pro cofrinho! ` | `Mais um pro cofrinho! ` |
-
-### ExportReportDialog.tsx
-| Local | Atual | Novo |
-|-------|-------|------|
-| HTML do relatorio | ` Piggy Bud - Relatorio Financeiro` | `Piggy Bud - Relatorio Financeiro` |
-| Preview do relatorio | ` Piggy Bud` | `Piggy Bud` |
-
----
-
-## Resumo de Arquivos
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `src/assets/piggy-bud-logo.png` | Substituir pela nova imagem |
-| `src/pages/PerfilPage.tsx` | Remover `truncate` das descricoes de conquistas |
-| `src/lib/personality-engine.ts` | Trocar emoji de porquinho por emoji de moeda |
-| `src/components/ExportReportDialog.tsx` | Trocar emoji de porquinho por emoji de grafico/moeda |
+## Resumo
+Em todos os lugares onde a imagem aparece em circulo, a mudanca sera:
+- `object-cover` -> `object-contain` (evita corte)
+- Adicionar pequeno padding onde necessario para dar respiro visual
