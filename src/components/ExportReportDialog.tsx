@@ -115,7 +115,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         </head>
         <body>
           <div class="header">
-            <h1>🐷 Piggy Bud - Relatório Financeiro</h1>
+            <h1>📊 Piggy Bud - Relatório Financeiro</h1>
             <p>${profile.name ? `${profile.name} • ` : ''}${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</p>
           </div>
           
@@ -204,7 +204,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
 
         <div ref={reportRef} className="flex-1 overflow-y-auto space-y-4 pr-2">
           <div className="text-center pb-3 border-b">
-            <h2 className="text-lg font-bold text-primary">🐷 Piggy Bud</h2>
+            <h2 className="text-lg font-bold text-primary">💰 Piggy Bud</h2>
             <p className="text-sm text-muted-foreground capitalize">
               {profile.name ? `${profile.name} • ` : ''}{monthName}
             </p>

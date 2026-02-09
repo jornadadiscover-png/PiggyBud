@@ -133,7 +133,7 @@ export function generateIncomeReaction(amount: number): string {
     `Ka-ching! +R$ ${amount.toFixed(2)} na conta! 💰`,
     `O dinheiro tá entrando! 🤑`,
     `Trabalho valeu a pena! 💪`,
-    `Mais um pro cofrinho! 🐷`,
+    `Mais um pro cofrinho! 🪙`,
     `Isso sim é notícia boa! 🎉`,
     `Conta engordando! 📈`,
   ];
