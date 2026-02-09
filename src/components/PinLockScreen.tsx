@@ -73,7 +73,7 @@ export function PinLockScreen({ mode, onSuccess }: PinLockScreenProps) {
       {/* Header with Piggy Bud logo */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-24 h-24 rounded-full gradient-primary flex items-center justify-center mb-4 shadow-glow p-1">
-          <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-full object-cover" />
+          <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-full object-contain" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">
           {mode === 'setup' 
