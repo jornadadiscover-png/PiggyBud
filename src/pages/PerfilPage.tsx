@@ -328,7 +328,7 @@ export function PerfilPage({ onNavigateToPremium }: PerfilPageProps) {
                   <p className={`font-medium text-sm ${!achievement.unlocked && 'text-muted-foreground'}`}>
                     {achievement.title}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground break-words">
                     {achievement.description}
                   </p>
                 </div>
