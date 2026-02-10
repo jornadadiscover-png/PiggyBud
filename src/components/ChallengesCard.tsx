@@ -118,7 +118,7 @@ export function ChallengesCard({ onNavigateToPremium }: ChallengesCardProps) {
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mb-2">
+            <p className="text-xs text-muted-foreground mb-2 break-words">
               {challenge.description}
             </p>
             <div className="space-y-1">
@@ -128,7 +128,7 @@ export function ChallengesCard({ onNavigateToPremium }: ChallengesCardProps) {
               />
               <div className="flex justify-between text-[10px] text-muted-foreground">
                 <span>{challenge.progress.toFixed(0)}% completo</span>
-                <span className="text-warning">{challenge.reward}</span>
+                <span className="text-warning break-words">{challenge.reward}</span>
               </div>
             </div>
           </div>

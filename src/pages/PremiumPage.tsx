@@ -67,8 +67,13 @@ export function PremiumPage({ onBack, onNavigateToAuth }: PremiumPageProps) {
       });
 
       if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
+      if (!data?.url) {
+        throw new Error('Não foi possível gerar o link de pagamento. Tente novamente.');
+      }
+      // Try window.open first, fallback to redirect if blocked by popup blocker
+      const newWindow = window.open(data.url, '_blank');
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        window.location.href = data.url;
       }
     } catch (error: any) {
       toast({

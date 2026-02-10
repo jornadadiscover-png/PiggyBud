@@ -163,7 +163,7 @@ export function PerfilPage({ onNavigateToPremium }: PerfilPageProps) {
       </header>
 
       {/* Profile Card */}
-      <Card className="mb-4 border-0 shadow-soft overflow-hidden">
+      <Card className="mb-4 border-0 shadow-soft">
         <div className="h-20 gradient-primary" />
         <CardContent className="relative pt-0">
           {/* Avatar with upload */}
