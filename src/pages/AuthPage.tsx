@@ -66,7 +66,7 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
           </Button>
         )}
         <div className="text-center">
-          <img src={piggyLogo} alt="Piggy Bud" className="w-20 h-20 mx-auto mb-4 rounded-full shadow-lg object-contain p-1" />
+          <img src={piggyLogo} alt="Piggy Bud" className="w-20 h-20 mx-auto mb-4 rounded-full shadow-lg object-contain p-1 bg-[#2E7D32]" />
           <h1 className="text-2xl font-bold mb-1">
             {mode === 'login' ? 'Entrar' : 'Criar Conta'}
           </h1>
