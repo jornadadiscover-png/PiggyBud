@@ -1,53 +1,40 @@
 
+# Correcao: Texto Cortado nos Cards + Erro Checkout Mensal
 
-# Correcao de Textos Cortados no Perfil + Erro do Checkout Mensal
+## Problema 1: Texto cortado nos cards
 
-## 1. Textos cortados no Perfil
+O componente `PremiumGate` usa `overflow-hidden` (linha 22) no container principal para permitir o efeito blur. Isso corta o conteudo visualmente tanto no card de desafio Premium quanto na secao "Dados" do Perfil.
 
-Encontrei os seguintes pontos que podem causar corte de texto:
+**Solucao**: Remover `overflow-hidden` do container externo do `PremiumGate` e aplicar o clip apenas no elemento com blur (o children blurred), usando `overflow-hidden` apenas na div interna do blur.
 
-### Profile Card (linha 166)
-O card do perfil tem `overflow-hidden` que pode cortar conteudo que saia dos limites do card. Vou remover essa classe pois o `rounded-lg` do Card ja cuida do arredondamento visual.
+### Arquivo: `src/components/PremiumGate.tsx`
+- Linha 22: Remover `overflow-hidden` do container externo (`div.relative`)
+- Linha 24: Adicionar `overflow-hidden rounded-2xl` na div do blur para conter o efeito visual sem cortar o overlay
 
-### ChallengesCard - Reward text (linha 131)
-O texto da recompensa nos desafios pode ser cortado em telas pequenas pois esta junto com a porcentagem na mesma linha. Vou garantir que o texto quebre adequadamente com `break-words`.
+## Problema 2: Erro no checkout mensal
 
-### ChallengesCard - Description (linha 121-122)
-A descricao dos desafios nao tem `break-words`, pode cortar em telas estreitas. Vou adicionar `break-words`.
+Os logs mostram `"No authorization header provided"` - o token de autenticacao nao esta sendo enviado. O erro "Failed to send a request to the Edge Function" pode ocorrer quando:
+- A sessao do usuario expirou
+- O `supabase.functions.invoke` falha silenciosamente
 
-### PremiumGate (linha 26)
-O `overflow-hidden` do componente `PremiumGate` pode cortar texto dos desafios premium. Este e necessario para o efeito blur, entao sera mantido.
+**Solucao**: Adicionar verificacao explicita de sessao antes do invoke e forcar refresh do token se necessario.
 
-**Arquivos a modificar:**
-- `src/pages/PerfilPage.tsx` - Remover `overflow-hidden` do Profile Card (linha 166)
-- `src/components/ChallengesCard.tsx` - Adicionar `break-words` nas descricoes (linha 121) e no texto da recompensa (linha 131)
+### Arquivo: `src/pages/PremiumPage.tsx`
+- No `handleCheckout` (linhas 62-85): Antes de chamar `supabase.functions.invoke`, verificar se existe sessao ativa com `supabase.auth.getSession()`. Se nao houver sessao, redirecionar para auth. Se houver, forcar um `supabase.auth.refreshSession()` para garantir token valido antes do invoke.
 
----
+```text
+Fluxo atualizado:
+1. Usuario clica "Assinar Premium"
+2. Verifica sessao ativa (getSession)
+3. Se nao ha sessao -> redireciona para auth
+4. Se ha sessao -> refreshSession para renovar token
+5. Chama create-checkout com token atualizado
+6. Abre URL do Stripe (com fallback para redirect)
+```
 
-## 2. Erro no checkout mensal
-
-Investiguei os logs da funcao `create-checkout` e do Stripe:
-
-- Os dois precos existem e estao ativos no Stripe (mensal `price_1SxT363XMRup5szXx8FiZXjM` = R$ 9,90/mes e anual `price_1SyYGd3XMRup5szX9pqKXTKM` = R$ 70,80/ano)
-- A lista de precos permitidos no codigo inclui ambos
-- Os logs nao mostram nenhuma tentativa com o preco mensal falhando
-- O usuario nao tem assinatura ativa no Stripe
-
-O problema mais provavel e que a funcao invoke retornou um erro de rede ou timeout que nao ficou registrado nos logs do servidor. Para melhorar a experiencia, vou:
-
-1. Adicionar um fallback com `window.location.href` caso `window.open` seja bloqueado pelo navegador (popup blocker)
-2. Adicionar tratamento para quando `data.url` vem vazio
-
-**Arquivo a modificar:**
-- `src/pages/PremiumPage.tsx` - Melhorar o tratamento de erro no `handleCheckout` (linhas 62-81)
-
----
-
-## Resumo de Mudancas
+## Resumo
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/pages/PerfilPage.tsx` | Remover `overflow-hidden` do Profile Card |
-| `src/components/ChallengesCard.tsx` | Adicionar `break-words` em descricoes e recompensas |
-| `src/pages/PremiumPage.tsx` | Melhorar tratamento de erro/popup blocker no checkout |
-
+| `src/components/PremiumGate.tsx` | Mover `overflow-hidden` do container externo para a div interna do blur |
+| `src/pages/PremiumPage.tsx` | Adicionar verificacao e refresh de sessao antes do checkout |
