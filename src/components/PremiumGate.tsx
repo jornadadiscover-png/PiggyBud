@@ -19,9 +19,9 @@ export function PremiumGate({ feature, children, fallbackMessage, onUpgrade }: P
   }
 
   return (
-    <div className="relative rounded-2xl overflow-hidden">
+    <div className="relative rounded-2xl">
       {/* Blurred preview */}
-      <div className="blur-sm opacity-50 pointer-events-none select-none">
+      <div className="blur-sm opacity-50 pointer-events-none select-none overflow-hidden rounded-2xl">
         {children}
       </div>
 

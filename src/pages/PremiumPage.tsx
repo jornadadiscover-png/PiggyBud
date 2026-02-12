@@ -61,6 +61,17 @@ export function PremiumPage({ onBack, onNavigateToAuth }: PremiumPageProps) {
 
     setCheckoutLoading(true);
     try {
+      // Verify active session before checkout
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        onNavigateToAuth?.();
+        setCheckoutLoading(false);
+        return;
+      }
+
+      // Force token refresh to ensure valid auth header
+      await supabase.auth.refreshSession();
+
       const priceId = selectedPlan === 'monthly' ? MONTHLY_PRICE_ID : ANNUAL_PRICE_ID;
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
