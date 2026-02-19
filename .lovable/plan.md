@@ -1,40 +1,27 @@
 
-# Correcao: Texto Cortado nos Cards + Erro Checkout Mensal
+# Trocar Todas as Imagens do Porquinho
 
-## Problema 1: Texto cortado nos cards
+## O que sera feito
+Substituir a imagem atual do porquinho (`piggy-bud-logo.png`) pela nova imagem 3D do porquinho segurando o cartao em todos os lugares do app.
 
-O componente `PremiumGate` usa `overflow-hidden` (linha 22) no container principal para permitir o efeito blur. Isso corta o conteudo visualmente tanto no card de desafio Premium quanto na secao "Dados" do Perfil.
+## Mudancas
 
-**Solucao**: Remover `overflow-hidden` do container externo do `PremiumGate` e aplicar o clip apenas no elemento com blur (o children blurred), usando `overflow-hidden` apenas na div interna do blur.
+### 1. Copiar a nova imagem
+- Copiar `user-uploads://20260219_125454.png` para `src/assets/piggy-bud-logo.png` (substituindo a atual)
 
-### Arquivo: `src/components/PremiumGate.tsx`
-- Linha 22: Remover `overflow-hidden` do container externo (`div.relative`)
-- Linha 24: Adicionar `overflow-hidden rounded-2xl` na div do blur para conter o efeito visual sem cortar o overlay
+### 2. Ajustar estilos nos componentes
+A nova imagem tem fundo verde-menta com cantos arredondados (nao circular), entao os estilos precisam ser ajustados:
 
-## Problema 2: Erro no checkout mensal
+| Arquivo | Ajuste |
+|---------|--------|
+| `src/components/MascotAvatar.tsx` | Remover `bg-[#2E7D32]`, trocar `rounded-full` por `rounded-xl` na img |
+| `src/pages/FeedPage.tsx` | Remover `bg-[#2E7D32]`, `object-contain`, `p-0.5`, trocar `rounded-full` por `rounded-xl` na img do header |
+| `src/pages/AuthPage.tsx` | Remover `bg-[#2E7D32]`, `object-contain`, `p-1`, trocar `rounded-full` por `rounded-2xl` |
+| `src/pages/PremiumPage.tsx` | Remover `bg-[#2E7D32]`, `object-contain`, `p-1`, trocar `rounded-full` por `rounded-2xl` |
+| `src/components/PinLockScreen.tsx` | Remover `bg-[#2E7D32]`, `object-contain`, trocar `rounded-full` por `rounded-2xl` |
+| `src/pages/InstallPage.tsx` | Nenhuma mudanca necessaria (ja usa `rounded-2xl`) |
 
-Os logs mostram `"No authorization header provided"` - o token de autenticacao nao esta sendo enviado. O erro "Failed to send a request to the Edge Function" pode ocorrer quando:
-- A sessao do usuario expirou
-- O `supabase.functions.invoke` falha silenciosamente
+### 3. Atualizar icones PWA (public/)
+- Copiar a nova imagem tambem para `public/piggy-bud-logo.png`
 
-**Solucao**: Adicionar verificacao explicita de sessao antes do invoke e forcar refresh do token se necessario.
-
-### Arquivo: `src/pages/PremiumPage.tsx`
-- No `handleCheckout` (linhas 62-85): Antes de chamar `supabase.functions.invoke`, verificar se existe sessao ativa com `supabase.auth.getSession()`. Se nao houver sessao, redirecionar para auth. Se houver, forcar um `supabase.auth.refreshSession()` para garantir token valido antes do invoke.
-
-```text
-Fluxo atualizado:
-1. Usuario clica "Assinar Premium"
-2. Verifica sessao ativa (getSession)
-3. Se nao ha sessao -> redireciona para auth
-4. Se ha sessao -> refreshSession para renovar token
-5. Chama create-checkout com token atualizado
-6. Abre URL do Stripe (com fallback para redirect)
-```
-
-## Resumo
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `src/components/PremiumGate.tsx` | Mover `overflow-hidden` do container externo para a div interna do blur |
-| `src/pages/PremiumPage.tsx` | Adicionar verificacao e refresh de sessao antes do checkout |
+Em resumo: a imagem antiga sera substituida pela nova em todos os locais, e os estilos serao ajustados para combinar com o formato da nova imagem (cantos arredondados ao inves de circular, sem fundo verde forcado).
