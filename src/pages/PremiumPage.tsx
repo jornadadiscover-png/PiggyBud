@@ -178,7 +178,7 @@ export function PremiumPage({ onBack, onNavigateToAuth }: PremiumPageProps) {
       {/* Header */}
       <header className="text-center mb-6 pt-4">
         <div className="relative w-24 h-24 mx-auto mb-4">
-          <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-full object-contain shadow-lg p-1 bg-[#2E7D32]" />
+          <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-2xl object-cover shadow-lg" />
           <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-md">
             <Crown className="w-4 h-4 text-amber-950" />
           </div>

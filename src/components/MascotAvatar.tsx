@@ -74,7 +74,7 @@ export function MascotAvatar({ size = 'md', showMessage = true }: MascotAvatarPr
         <img 
           src={piggyLogo} 
           alt="Piggy Bud" 
-          className={`${sizes.img} rounded-full object-contain bg-[#2E7D32]`}
+          className={`${sizes.img} rounded-xl object-cover`}
         />
         {/* Mood emoji overlay */}
         <span className={`absolute -bottom-1 -right-1 ${sizes.emoji} bg-card rounded-full p-0.5 shadow-sm`}>

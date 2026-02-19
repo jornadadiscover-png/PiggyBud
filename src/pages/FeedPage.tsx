@@ -45,7 +45,7 @@ export function FeedPage() {
         {/* Logo + Brand */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-3">
-            <img src={piggyLogo} alt="Piggy Bud" className="w-10 h-10 rounded-full shadow-md border-2 border-primary-foreground/30 object-contain p-0.5 bg-[#2E7D32]" />
+            <img src={piggyLogo} alt="Piggy Bud" className="w-10 h-10 rounded-xl shadow-md border-2 border-primary-foreground/30 object-cover" />
             <div>
               <h1 className="text-xl font-bold leading-tight">Piggy Bud</h1>
               <p className="text-primary-foreground/70 text-xs">
