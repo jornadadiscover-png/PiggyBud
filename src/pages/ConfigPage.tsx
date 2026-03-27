@@ -93,7 +93,7 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground mb-4">
-            Selecione os bancos que deseja monitorar (simulação)
+            Selecione os bancos que deseja monitorar
           </p>
           <div className="grid grid-cols-2 gap-2">
             {allBanks.map((bank) => {

@@ -4,19 +4,17 @@ import { Button } from '@/components/ui/button';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TransactionCard } from '@/components/TransactionCard';
-import { SimulateNotificationDialog } from '@/components/SimulateNotificationDialog';
 import { AddTransactionDialog } from '@/components/AddTransactionDialog';
 import { PasteNotificationDialog } from '@/components/PasteNotificationDialog';
 import { MascotAvatar } from '@/components/MascotAvatar';
 import { DailyQuote } from '@/components/DailyQuote';
 import { FinancialHealthScore } from '@/components/FinancialHealthScore';
-import { TrendingUp, TrendingDown, Wallet, Bell, Plus, ClipboardPaste } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Plus, ClipboardPaste } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import piggyLogo from '@/assets/piggy-bud-logo.png';
 
 export function FeedPage() {
-  const [showSimulate, setShowSimulate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showPaste, setShowPaste] = useState(false);
   const { transactions, getTotalByType } = useTransactionStore();
@@ -53,14 +51,6 @@ export function FeedPage() {
               </p>
             </div>
           </div>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="text-primary-foreground hover:bg-primary-foreground/20"
-            onClick={() => setShowSimulate(true)}
-          >
-            <Bell className="w-5 h-5" />
-          </Button>
         </div>
 
         {/* Greeting */}
@@ -152,13 +142,6 @@ export function FeedPage() {
           <ClipboardPaste className="w-5 h-5 mr-2" />
           Colar Notificação
         </Button>
-        <Button
-          onClick={() => setShowSimulate(true)}
-          className="flex-1 gradient-primary text-primary-foreground rounded-2xl h-12 shadow-soft"
-        >
-          <Bell className="w-5 h-5 mr-2" />
-          Simular
-        </Button>
       </div>
 
       {/* Transactions Feed */}
@@ -178,7 +161,7 @@ export function FeedPage() {
               </div>
               <h3 className="font-semibold mb-2">Nenhuma transação ainda</h3>
               <p className="text-muted-foreground text-center text-sm mb-4">
-                Clique no botão acima para simular uma notificação bancária!
+                Adicione sua primeira transação com o botão +
               </p>
             </CardContent>
           </Card>
@@ -205,7 +188,6 @@ export function FeedPage() {
       </Button>
 
       {/* Dialogs */}
-      <SimulateNotificationDialog open={showSimulate} onOpenChange={setShowSimulate} />
       <AddTransactionDialog open={showAdd} onOpenChange={setShowAdd} />
       <PasteNotificationDialog open={showPaste} onOpenChange={setShowPaste} />
     </div>

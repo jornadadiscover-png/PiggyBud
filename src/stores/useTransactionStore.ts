@@ -12,7 +12,7 @@ interface TransactionStore {
   getTransactionsByMonth: (year: number, month: number) => Transaction[];
   getTotalByType: (type: 'expense' | 'income', month?: number, year?: number) => number;
   getTotalByCategory: (category: Category, month?: number, year?: number) => number;
-  simulateBankNotification: (bank: Bank, amount: number, merchant: string) => Transaction;
+  
 }
 
 export const useTransactionStore = create<TransactionStore>()(
@@ -93,20 +93,6 @@ export const useTransactionStore = create<TransactionStore>()(
         return transactions.reduce((sum, t) => sum + t.amount, 0);
       },
 
-      simulateBankNotification: (bank, amount, merchant) => {
-        const categories: Category[] = ['alimentacao', 'transporte', 'lazer', 'compras', 'outros'];
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-        
-        return get().addTransaction({
-          amount,
-          merchant,
-          category: randomCategory,
-          date: new Date(),
-          source: 'auto',
-          type: 'expense',
-          bank,
-        });
-      },
     }),
     {
       name: 'piggy-bud-transactions',
