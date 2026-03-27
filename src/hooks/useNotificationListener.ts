@@ -82,6 +82,6 @@ export function useNotificationListener(options: UseNotificationListenerOptions 
     requestPermission: notificationService.requestPermission.bind(notificationService),
     startListening: notificationService.startListening.bind(notificationService),
     stopListening: notificationService.stopListening.bind(notificationService),
-    simulateNotification: notificationService.simulateNotification.bind(notificationService),
+    
   };
 }

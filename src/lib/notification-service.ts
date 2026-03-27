@@ -150,30 +150,6 @@ class NotificationService {
     }
   }
   
-  /**
-   * Simula uma notificação para testes
-   */
-  simulateNotification(text: string, packageName?: string): ParsedNotification {
-    const notification: NotificationData = {
-      packageName: packageName || 'com.nu.production',
-      title: 'Notificação',
-      text,
-      timestamp: Date.now(),
-    };
-    
-    const parsed = parseNotification(text, packageName);
-    
-    // Notifica listeners também na simulação
-    for (const listener of this.listeners) {
-      try {
-        listener(parsed, notification);
-      } catch (error) {
-        console.error('Erro no listener de notificação:', error);
-      }
-    }
-    
-    return parsed;
-  }
 }
 
 // Singleton
