@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Transaction, Category, Bank } from '@/types';
+import { Transaction, Category } from '@/types';
 import { generateReaction, generateIncomeReaction } from '@/lib/personality-engine';
 
 interface TransactionStore {
