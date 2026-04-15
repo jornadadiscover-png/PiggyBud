@@ -1,54 +1,53 @@
 
 
-# Plano: Remover Teste/Simulação e Preparar para Produção
+# Plano: Limpeza Final + Offline + Melhorias de Produção
 
-## O que será removido
+## 1. Remover toda a funcionalidade de "Leitura Automática de Notificações"
 
-### 1. Botão e Dialog "Simular Notificação"
-- **`src/components/SimulateNotificationDialog.tsx`** — deletar arquivo inteiro
-- **`src/pages/FeedPage.tsx`** — remover import, estado `showSimulate`, botão "Simular" (linhas 56-63 no header e linhas 155-161), e o dialog (linha 208)
-- **`src/stores/useTransactionStore.ts`** — remover função `simulateBankNotification` e seu tipo na interface
-- **`src/lib/notification-service.ts`** — remover método `simulateNotification` (apenas para testes)
-- **`src/hooks/useNotificationListener.ts`** — remover export de `simulateNotification`
-
-### 2. Texto "(simulação)" nas Configurações
-- **`src/pages/ConfigPage.tsx`** linha 96 — trocar "Selecione os bancos que deseja monitorar (simulação)" por "Selecione os bancos que deseja monitorar"
-
-### 3. Texto de empty state no Feed
-- **`src/pages/FeedPage.tsx`** linha 181 — trocar "Clique no botão acima para simular uma notificação bancária!" por "Adicione sua primeira transação com o botão +"
-
----
-
-## O que falta para funcionar completamente
-
-### Funcional hoje:
-- ✅ Adicionar transações manualmente (botão +)
-- ✅ Colar notificações bancárias (parsing automático)
-- ✅ Planilha com filtros e edição
-- ✅ Relatórios com gráficos
-- ✅ Desafios e conquistas
-- ✅ PIN de segurança
-- ✅ Autenticação (login/signup)
-- ✅ Premium com Stripe (checkout e verificação)
-- ✅ Exportação de relatório
-
-### Dados apenas em localStorage (não perde ao trocar de dispositivo, mas perde ao limpar dados do navegador):
-- As transações, configurações e perfil ficam em `localStorage` via Zustand persist
-- Para produção real, seria ideal migrar para o banco de dados (Lovable Cloud) para que os dados fiquem vinculados à conta do usuário e não se percam
-
-### Não implementar agora (requer app nativo Android):
-- Leitura automática de notificações (NotificationListenerService) — funcionalidade corretamente bloqueada para web
-
----
-
-## Resumo de Mudanças
+Esta funcionalidade só funcionaria num app Android nativo com Capacitor + NotificationListenerService, que não é o caso atual (é uma PWA web). Vamos remover completamente:
 
 | Arquivo | Ação |
 |---------|------|
-| `src/components/SimulateNotificationDialog.tsx` | Deletar |
-| `src/pages/FeedPage.tsx` | Remover botão simular, import e dialog |
-| `src/stores/useTransactionStore.ts` | Remover `simulateBankNotification` |
-| `src/lib/notification-service.ts` | Remover `simulateNotification` |
-| `src/hooks/useNotificationListener.ts` | Remover export `simulateNotification` |
-| `src/pages/ConfigPage.tsx` | Remover "(simulação)" do texto |
+| `src/lib/notification-service.ts` | Deletar arquivo |
+| `src/lib/notification-parser.ts` | Manter (usado pelo "Colar Notificação") |
+| `src/hooks/useNotificationListener.ts` | Deletar arquivo |
+| `src/pages/ConfigPage.tsx` | Remover seção "Leitura Automática" inteira (linhas 126-187), remover import do `useNotificationListener`, `BellRing`, `AlertCircle` |
+| `src/pages/PremiumPage.tsx` | Remover o item "Leitura Automática" da lista de features Premium (linha 17) e import `BellRing` |
+| `src/stores/useSettingsStore.ts` | Remover campos `autoReadEnabled`, `autoAddTransactions`, `lastAutoReadAt` do `defaultSettings` e do tipo `AppSettings` |
+| `src/types/index.ts` | Remover `autoReadEnabled`, `autoAddTransactions`, `lastAutoReadAt` de `AppSettings`; remover `'auto-read'` de `PremiumFeature` |
+| `capacitor.config.json` | Manter por enquanto (pode ser útil futuramente) |
+
+## 2. Garantir funcionamento offline (PWA)
+
+O PWA já está configurado com `vite-plugin-pwa` e Workbox, mas falta a **guarda de segurança** para não registrar o service worker no preview/iframe do Lovable (causa problemas de cache). Isso é obrigatório.
+
+**Arquivo: `src/main.tsx`** — Adicionar guarda antes do render:
+```text
+1. Detectar se está em iframe ou em domínio de preview
+2. Se sim, desregistrar service workers existentes
+3. Se não, permitir registro normal do PWA
+```
+
+**Arquivo: `vite.config.ts`** — Adicionar `devOptions: { enabled: false }` e `navigateFallbackDenylist: [/^\/~oauth/]` para evitar problemas no dev.
+
+Os dados já funcionam offline porque estão em `localStorage` via Zustand persist. As transações, configurações e perfil do usuário já estão disponíveis offline.
+
+## 3. Melhorias de robustez e profissionalismo
+
+### 3a. Remover `TransactionSource: 'auto'` que não tem mais uso
+- `src/types/index.ts` — Remover `'auto'` de `TransactionSource` (ficará apenas `'manual'`)
+
+### 3b. Atualizar o og:image para usar imagem própria
+- `index.html` — Trocar a imagem OG padrão do Lovable por `/piggy-bud-logo.png`
+
+### 3c. Remover import não utilizado
+- `src/pages/ConfigPage.tsx` — Limpar imports que ficarem órfãos após remoção da seção de leitura automática
+
+## Resumo
+
+| Categoria | Mudança |
+|-----------|---------|
+| Remoção | Toda funcionalidade de leitura automática de notificações (2 arquivos deletados, 5 editados) |
+| Offline | Adicionar guarda de service worker no `main.tsx`, ajustar config PWA |
+| Qualidade | Limpar tipos órfãos, corrigir og:image |
 
