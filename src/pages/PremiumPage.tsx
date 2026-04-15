@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePremiumStore } from '@/stores/usePremiumStore';
 import { supabase } from '@/integrations/supabase/client';
-import { Crown, Check, Sparkles, BarChart3, FileText, BellRing, Tags, Clock, Trophy, Ban, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
+import { Crown, Check, Sparkles, BarChart3, FileText, Tags, Clock, Trophy, Ban, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import piggyLogo from '@/assets/piggy-bud-logo.png';
 
@@ -14,7 +14,7 @@ const premiumFeatures = [
   { icon: <BarChart3 className="w-5 h-5" />, title: 'Relatórios com IA', description: 'Insights personalizados sobre seus gastos' },
   { icon: <FileText className="w-5 h-5" />, title: 'Exportar PDF/Excel', description: 'Relatórios profissionais em qualquer formato' },
   { icon: <Sparkles className="w-5 h-5" />, title: 'Metas Ilimitadas', description: 'Metas por categoria, economia e investimento' },
-  { icon: <BellRing className="w-5 h-5" />, title: 'Leitura Automática', description: 'Transações registradas por notificações' },
+  
   { icon: <Tags className="w-5 h-5" />, title: 'Categorias Personalizadas', description: 'Crie categorias além das padrão' },
   { icon: <Clock className="w-5 h-5" />, title: 'Histórico Completo', description: 'Acesso ilimitado a todo seu histórico' },
   { icon: <Trophy className="w-5 h-5" />, title: 'Desafios Exclusivos', description: 'Desafios Premium com recompensas especiais' },

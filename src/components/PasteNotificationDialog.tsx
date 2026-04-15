@@ -68,7 +68,7 @@ export function PasteNotificationDialog({ open, onOpenChange }: PasteNotificatio
       merchant: finalMerchant,
       category: finalCategory as Category,
       type: finalType,
-      source: 'auto',
+      source: 'manual',
       bank: finalBank || undefined,
       date: new Date(),
     });
