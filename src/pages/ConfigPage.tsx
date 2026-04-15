@@ -7,11 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { Bank, bankLabels, bankColors } from '@/types';
-import { Smartphone, Bell, Sliders, Lock, Check, BellRing, AlertCircle } from 'lucide-react';
+import { Smartphone, Bell, Sliders, Lock, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
-import { useNotificationListener } from '@/hooks/useNotificationListener';
-import { PremiumGate } from '@/components/PremiumGate';
 
 interface ConfigPageProps {
   onNavigateToPremium?: () => void;
@@ -43,33 +41,6 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
     });
   };
 
-  const { isAvailable, isWeb, requestPermission } = useNotificationListener();
-
-  const handleEnableAutoRead = async () => {
-    if (isWeb) {
-      toast({
-        title: '⚠️ Apenas no app Android',
-        description: 'A leitura automática só funciona no APK Android instalado.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const granted = await requestPermission();
-    if (granted) {
-      updateSettings({ autoReadEnabled: true });
-      toast({
-        title: '✅ Leitura automática ativada!',
-        description: 'Agora suas transações serão registradas automaticamente.',
-      });
-    } else {
-      toast({
-        title: 'Permissão necessária',
-        description: 'Por favor, habilite o acesso às notificações nas configurações do Android.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   if (showPinSetup) {
     return <PinLockScreen mode="setup" onSuccess={handlePinSetupSuccess} />;
@@ -123,68 +94,6 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
         </CardContent>
       </Card>
 
-      {/* Auto Read Section - PREMIUM */}
-      <PremiumGate feature="auto-read" onUpgrade={onNavigateToPremium}>
-        <Card className="mb-4 border-0 shadow-soft">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <BellRing className="w-4 h-4 text-primary" />
-              <CardTitle className="text-base">Leitura Automática</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-muted/50">
-              <AlertCircle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground">
-                {isWeb 
-                  ? 'Esta funcionalidade só está disponível no app Android nativo. Exporte o projeto e compile o APK para usar.'
-                  : 'Monitora notificações bancárias e registra transações automaticamente.'}
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Status</Label>
-                <p className="text-xs text-muted-foreground">
-                  {settings.autoReadEnabled ? '🟢 Ativo' : '🔴 Inativo'}
-                </p>
-              </div>
-              {settings.autoReadEnabled ? (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => updateSettings({ autoReadEnabled: false })}
-                >
-                  Desativar
-                </Button>
-              ) : (
-                <Button 
-                  size="sm" 
-                  onClick={handleEnableAutoRead}
-                  disabled={isWeb}
-                >
-                  Ativar
-                </Button>
-              )}
-            </div>
-
-            {settings.autoReadEnabled && (
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Adicionar automaticamente</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Registra transações sem confirmação
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.autoAddTransactions}
-                  onCheckedChange={(checked) => updateSettings({ autoAddTransactions: checked })}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </PremiumGate>
 
       {/* Notifications Section */}
       <Card className="mb-4 border-0 shadow-soft">

@@ -1,5 +1,5 @@
 // Transaction Types
-export type TransactionSource = 'auto' | 'manual';
+export type TransactionSource = 'manual';
 export type TransactionType = 'expense' | 'income';
 
 export interface Transaction {
@@ -120,9 +120,6 @@ export interface AppSettings {
   weeklyReportEnabled: boolean;
   pinEnabled: boolean;
   pin?: string;
-  autoReadEnabled: boolean;
-  autoAddTransactions: boolean;
-  lastAutoReadAt?: Date;
   // Category budgets
   categoryBudgets: CategoryBudget[];
 }
@@ -147,7 +144,6 @@ export type PremiumFeature =
   | 'advanced-reports'
   | 'export-pdf'
   | 'unlimited-goals'
-  | 'auto-read'
   | 'custom-categories'
   | 'full-history'
   | 'exclusive-challenges'
