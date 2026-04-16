@@ -113,7 +113,6 @@ export interface UserProfile {
 
 // Settings Types
 export interface AppSettings {
-  enabledBanks: Bank[];
   reminderTime: string;
   reactionSensitivity: 'low' | 'medium' | 'high';
   dailyReminderEnabled: boolean;
@@ -143,8 +142,7 @@ export interface Achievement {
 export type PremiumFeature = 
   | 'advanced-reports'
   | 'export-pdf'
-  | 'unlimited-goals'
-  | 'custom-categories'
-  | 'full-history'
   | 'exclusive-challenges'
-  | 'no-ads';
+  | 'ai-import'
+  | 'ai-summary'
+  | 'premium-themes';

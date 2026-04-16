@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePremiumStore } from '@/stores/usePremiumStore';
 import { supabase } from '@/integrations/supabase/client';
-import { Crown, Check, Sparkles, BarChart3, FileText, Tags, Clock, Trophy, Ban, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
+import { Crown, Check, Sparkles, BarChart3, FileText, Trophy, Upload, Brain, Palette, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import piggyLogo from '@/assets/piggy-bud-logo.png';
 
@@ -11,14 +11,12 @@ const MONTHLY_PRICE_ID = "price_1SxT363XMRup5szXx8FiZXjM";
 const ANNUAL_PRICE_ID = "price_1SyYGd3XMRup5szX9pqKXTKM";
 
 const premiumFeatures = [
-  { icon: <BarChart3 className="w-5 h-5" />, title: 'Relatórios com IA', description: 'Insights personalizados sobre seus gastos' },
+  { icon: <BarChart3 className="w-5 h-5" />, title: 'Relatórios com IA', description: 'Gráficos avançados e análise de tendências' },
   { icon: <FileText className="w-5 h-5" />, title: 'Exportar PDF/Excel', description: 'Relatórios profissionais em qualquer formato' },
-  { icon: <Sparkles className="w-5 h-5" />, title: 'Metas Ilimitadas', description: 'Metas por categoria, economia e investimento' },
-  
-  { icon: <Tags className="w-5 h-5" />, title: 'Categorias Personalizadas', description: 'Crie categorias além das padrão' },
-  { icon: <Clock className="w-5 h-5" />, title: 'Histórico Completo', description: 'Acesso ilimitado a todo seu histórico' },
   { icon: <Trophy className="w-5 h-5" />, title: 'Desafios Exclusivos', description: 'Desafios Premium com recompensas especiais' },
-  { icon: <Ban className="w-5 h-5" />, title: 'Sem Anúncios', description: 'Experiência limpa e sem distrações' },
+  { icon: <Upload className="w-5 h-5" />, title: 'Importação com IA', description: 'Extraia transações de screenshots e documentos' },
+  { icon: <Brain className="w-5 h-5" />, title: 'Resumo Mensal com IA', description: 'Análise inteligente dos seus gastos com dicas' },
+  { icon: <Palette className="w-5 h-5" />, title: 'Temas Premium', description: 'Personalize as cores e visual do app' },
 ];
 
 interface PremiumPageProps {

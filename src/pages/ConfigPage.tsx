@@ -6,24 +6,28 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Bank, bankLabels, bankColors } from '@/types';
-import { Smartphone, Bell, Sliders, Lock, Check } from 'lucide-react';
+import { Bell, Sliders, Lock, Palette } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
+import { PremiumGate } from '@/components/PremiumGate';
+import { usePremiumStore } from '@/stores/usePremiumStore';
 
 interface ConfigPageProps {
   onNavigateToPremium?: () => void;
 }
 
-export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
-  const { settings, updateSettings, toggleBank, resetPin } = useSettingsStore();
-  const [showPinSetup, setShowPinSetup] = useState(false);
-  const { toast } = useToast();
+const themes = [
+  { id: 'default', name: 'Padrão', colors: ['hsl(142 70% 45%)', 'hsl(270 60% 55%)'] },
+  { id: 'dark', name: 'Escuro', colors: ['hsl(220 20% 20%)', 'hsl(220 15% 30%)'] },
+  { id: 'ocean', name: 'Oceano', colors: ['hsl(200 80% 50%)', 'hsl(210 70% 40%)'] },
+  { id: 'sunset', name: 'Pôr do Sol', colors: ['hsl(25 90% 55%)', 'hsl(350 80% 55%)'] },
+];
 
-  const allBanks: Bank[] = [
-    'nubank', 'itau', 'bradesco', 'bb', 'caixa', 'santander',
-    'c6', 'inter', 'next', 'mercadopago', 'pagbank', 'picpay'
-  ];
+export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
+  const { settings, updateSettings, resetPin } = useSettingsStore();
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const { toast } = useToast();
 
   const handlePinSetupSuccess = () => {
     setShowPinSetup(false);
@@ -41,7 +45,6 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
     });
   };
 
-
   if (showPinSetup) {
     return <PinLockScreen mode="setup" onSuccess={handlePinSetupSuccess} />;
   }
@@ -53,47 +56,6 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
         <h1 className="text-2xl font-bold mb-2">⚙️ Configurações</h1>
         <p className="text-muted-foreground">Personalize seu app</p>
       </header>
-
-      {/* Banks Section */}
-      <Card className="mb-4 border-0 shadow-soft">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Smartphone className="w-4 h-4 text-primary" />
-            <CardTitle className="text-base">Bancos Monitorados</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-xs text-muted-foreground mb-4">
-            Selecione os bancos que deseja monitorar
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {allBanks.map((bank) => {
-              const isEnabled = settings.enabledBanks.includes(bank);
-              return (
-                <button
-                  key={bank}
-                  onClick={() => toggleBank(bank)}
-                  className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                    isEnabled 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: bankColors[bank] }} 
-                  />
-                  <span className="text-sm font-medium flex-1 text-left">
-                    {bankLabels[bank]}
-                  </span>
-                  {isEnabled && <Check className="w-4 h-4 text-primary" />}
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
 
       {/* Notifications Section */}
       <Card className="mb-4 border-0 shadow-soft">
@@ -169,6 +131,43 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
           </Select>
         </CardContent>
       </Card>
+
+      {/* Premium Themes Section */}
+      <PremiumGate feature="premium-themes" onUpgrade={onNavigateToPremium}>
+        <Card className="mb-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base">Temas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2">
+              {themes.map((theme) => (
+                <button
+                  key={theme.id}
+                  onClick={() => {
+                    setSelectedTheme(theme.id);
+                    toast({ title: `Tema "${theme.name}" aplicado!` });
+                  }}
+                  className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                    selectedTheme === theme.id
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex gap-1">
+                    {theme.colors.map((color, i) => (
+                      <div key={i} className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium">{theme.name}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </PremiumGate>
 
       {/* Security Section */}
       <Card className="border-0 shadow-soft">
