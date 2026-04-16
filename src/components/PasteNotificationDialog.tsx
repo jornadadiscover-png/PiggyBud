@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { parseNotification, formatCurrency } from '@/lib/notification-parser';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { Category, categoryLabels, Bank, bankLabels } from '@/types';
-import { ClipboardPaste, Check, AlertCircle, Sparkles, Upload, Loader2 } from 'lucide-react';
+import { ClipboardPaste, Check, AlertCircle, Sparkles, Upload, Loader2, Crown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { usePremiumStore } from '@/stores/usePremiumStore';
 
 interface PasteNotificationDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function PasteNotificationDialog({ open, onOpenChange }: PasteNotificatio
   const [editedBank, setEditedBank] = useState<Bank | ''>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { canAccess } = usePremiumStore();
 
   const { addTransaction } = useTransactionStore();
   const { toast } = useToast();
@@ -143,8 +145,14 @@ export function PasteNotificationDialog({ open, onOpenChange }: PasteNotificatio
             <div className="flex justify-between items-center">
               <Label>Texto da notificação</Label>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                <Button variant="ghost" size="sm" onClick={() => {
+                  if (!canAccess('ai-import')) {
+                    toast({ title: '👑 Recurso Premium', description: 'Importação com IA é exclusiva do Premium.' });
+                    return;
+                  }
+                  fileInputRef.current?.click();
+                }} disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : canAccess('ai-import') ? <Upload className="w-4 h-4 mr-1" /> : <Crown className="w-4 h-4 mr-1 text-amber-500" />}
                   {isProcessing ? 'Processando...' : 'Arquivo'}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={handlePaste} disabled={isProcessing}>
