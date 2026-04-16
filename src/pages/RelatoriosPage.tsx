@@ -285,6 +285,39 @@ export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
           </CardContent>
         </Card>
       </PremiumGate>
+
+      {/* AI Monthly Summary - PREMIUM */}
+      <PremiumGate feature="ai-summary" onUpgrade={onNavigateToPremium}>
+        <Card className="mt-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base">Resumo com IA</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiSummary ? (
+              <div className="space-y-3">
+                <p className="text-sm whitespace-pre-line break-words">{aiSummary}</p>
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={handleAiSummary} disabled={summaryLoading}>
+                  {summaryLoading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Brain className="w-4 h-4 mr-1" />}
+                  Gerar novamente
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  O Piggy Bud analisa seus gastos do mês e dá dicas personalizadas!
+                </p>
+                <Button className="rounded-xl" onClick={handleAiSummary} disabled={summaryLoading}>
+                  {summaryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Brain className="w-4 h-4 mr-2" />}
+                  {summaryLoading ? 'Analisando...' : 'Gerar Resumo Mensal'}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PremiumGate>
     </div>
   );
 }
