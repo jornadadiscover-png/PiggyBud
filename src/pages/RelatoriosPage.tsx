@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { Category, categoryLabels, categoryColors } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, Trophy } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trophy, Brain, Loader2 } from 'lucide-react';
 import { PremiumGate } from '@/components/PremiumGate';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface RelatoriosPageProps {
   onNavigateToPremium?: () => void;
@@ -12,6 +15,9 @@ interface RelatoriosPageProps {
 
 export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
   const { transactions, getTotalByCategory } = useTransactionStore();
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const { toast } = useToast();
 
   const now = new Date();
   const currentMonth = now.getMonth();
