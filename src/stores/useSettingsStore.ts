@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AppSettings, Bank, UserProfile } from '@/types';
+import { AppSettings, UserProfile } from '@/types';
 
 interface SettingsStore {
   settings: AppSettings;
@@ -9,7 +9,6 @@ interface SettingsStore {
   hasSetupPin: boolean;
   updateSettings: (updates: Partial<AppSettings>) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
-  toggleBank: (bank: Bank) => void;
   setPin: (pin: string) => void;
   verifyPin: (pin: string) => boolean;
   lock: () => void;
@@ -18,7 +17,6 @@ interface SettingsStore {
 }
 
 const defaultSettings: AppSettings = {
-  enabledBanks: ['nubank', 'itau', 'bradesco', 'c6', 'mercadopago', 'pagbank'],
   reminderTime: '20:00',
   reactionSensitivity: 'medium',
   dailyReminderEnabled: true,
@@ -54,20 +52,6 @@ export const useSettingsStore = create<SettingsStore>()(
         set((state) => ({
           profile: { ...state.profile, ...updates },
         }));
-      },
-
-      toggleBank: (bank) => {
-        set((state) => {
-          const enabled = state.settings.enabledBanks.includes(bank);
-          return {
-            settings: {
-              ...state.settings,
-              enabledBanks: enabled
-                ? state.settings.enabledBanks.filter((b) => b !== bank)
-                : [...state.settings.enabledBanks, bank],
-            },
-          };
-        });
       },
 
       setPin: (pin) => {

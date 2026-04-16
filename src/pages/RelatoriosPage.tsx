@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { Category, categoryLabels, categoryColors } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } from 'recharts';
-import { TrendingUp, TrendingDown, Trophy } from 'lucide-react';
+import { TrendingUp, TrendingDown, Trophy, Brain, Loader2 } from 'lucide-react';
 import { PremiumGate } from '@/components/PremiumGate';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface RelatoriosPageProps {
   onNavigateToPremium?: () => void;
@@ -12,6 +15,9 @@ interface RelatoriosPageProps {
 
 export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
   const { transactions, getTotalByCategory } = useTransactionStore();
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const { toast } = useToast();
 
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -86,6 +92,29 @@ export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
   const expenseChange = lastMonthExpenses > 0 
     ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses * 100)
     : 0;
+  const handleAiSummary = async () => {
+    const monthTransactions = transactions.filter((t) => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+    if (monthTransactions.length === 0) {
+      toast({ title: 'Sem dados', description: 'Adicione transações para gerar o resumo.', variant: 'destructive' });
+      return;
+    }
+    setSummaryLoading(true);
+    try {
+      const monthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const { data, error } = await supabase.functions.invoke('ai-monthly-summary', {
+        body: { transactions: monthTransactions, monthLabel },
+      });
+      if (error) throw error;
+      setAiSummary(data?.summary || 'Não foi possível gerar o resumo.');
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen pb-20 p-4">
@@ -251,6 +280,39 @@ export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
                     </span>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </PremiumGate>
+
+      {/* AI Monthly Summary - PREMIUM */}
+      <PremiumGate feature="ai-summary" onUpgrade={onNavigateToPremium}>
+        <Card className="mt-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-primary" />
+              <CardTitle className="text-base">Resumo com IA</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {aiSummary ? (
+              <div className="space-y-3">
+                <p className="text-sm whitespace-pre-line break-words">{aiSummary}</p>
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={handleAiSummary} disabled={summaryLoading}>
+                  {summaryLoading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Brain className="w-4 h-4 mr-1" />}
+                  Gerar novamente
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground mb-3">
+                  O Piggy Bud analisa seus gastos do mês e dá dicas personalizadas!
+                </p>
+                <Button className="rounded-xl" onClick={handleAiSummary} disabled={summaryLoading}>
+                  {summaryLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Brain className="w-4 h-4 mr-2" />}
+                  {summaryLoading ? 'Analisando...' : 'Gerar Resumo Mensal'}
+                </Button>
               </div>
             )}
           </CardContent>
