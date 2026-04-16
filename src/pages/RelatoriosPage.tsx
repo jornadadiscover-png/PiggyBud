@@ -92,6 +92,29 @@ export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
   const expenseChange = lastMonthExpenses > 0 
     ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses * 100)
     : 0;
+  const handleAiSummary = async () => {
+    const monthTransactions = transactions.filter((t) => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+    if (monthTransactions.length === 0) {
+      toast({ title: 'Sem dados', description: 'Adicione transações para gerar o resumo.', variant: 'destructive' });
+      return;
+    }
+    setSummaryLoading(true);
+    try {
+      const monthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      const { data, error } = await supabase.functions.invoke('ai-monthly-summary', {
+        body: { transactions: monthTransactions, monthLabel },
+      });
+      if (error) throw error;
+      setAiSummary(data?.summary || 'Não foi possível gerar o resumo.');
+    } catch (err: any) {
+      toast({ title: 'Erro', description: err?.message || 'Tente novamente.', variant: 'destructive' });
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen pb-20 p-4">
