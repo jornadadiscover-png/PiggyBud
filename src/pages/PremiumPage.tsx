@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePremiumStore } from '@/stores/usePremiumStore';
 import { supabase } from '@/integrations/supabase/client';
-import { Crown, Check, Sparkles, BarChart3, FileText, Trophy, Upload, Brain, Palette, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
+import { Crown, Check, BarChart3, FileText, Trophy, Upload, Brain, Palette, Loader2, RefreshCw, Settings, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import piggyLogo from '@/assets/piggy-bud-logo.png';
 

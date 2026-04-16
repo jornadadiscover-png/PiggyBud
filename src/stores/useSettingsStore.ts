@@ -54,20 +54,6 @@ export const useSettingsStore = create<SettingsStore>()(
         }));
       },
 
-      toggleBank: (bank) => {
-        set((state) => {
-          const enabled = state.settings.enabledBanks.includes(bank);
-          return {
-            settings: {
-              ...state.settings,
-              enabledBanks: enabled
-                ? state.settings.enabledBanks.filter((b) => b !== bank)
-                : [...state.settings.enabledBanks, bank],
-            },
-          };
-        });
-      },
-
       setPin: (pin) => {
         set((state) => ({
           settings: { ...state.settings, pin, pinEnabled: true },

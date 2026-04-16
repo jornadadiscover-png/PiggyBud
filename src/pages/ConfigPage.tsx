@@ -10,7 +10,7 @@ import { Bell, Sliders, Lock, Palette } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { PremiumGate } from '@/components/PremiumGate';
-import { usePremiumStore } from '@/stores/usePremiumStore';
+
 
 interface ConfigPageProps {
   onNavigateToPremium?: () => void;
