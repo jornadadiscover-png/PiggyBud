@@ -1,1 +1,4 @@
 project_id = "stflqqbkkvyvuewagpuh"
+
+[functions.generate-daily-tutor]
+verify_jwt = false
