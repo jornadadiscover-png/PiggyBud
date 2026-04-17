@@ -145,4 +145,5 @@ export type PremiumFeature =
   | 'exclusive-challenges'
   | 'ai-import'
   | 'ai-summary'
-  | 'premium-themes';
+  | 'premium-themes'
+  | 'daily-tutor';

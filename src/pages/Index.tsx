@@ -10,6 +10,9 @@ import { ConfigPage } from '@/pages/ConfigPage';
 import { PerfilPage } from '@/pages/PerfilPage';
 import { PremiumPage } from '@/pages/PremiumPage';
 import { AuthPage } from '@/pages/AuthPage';
+import { CalculadoraPage } from '@/pages/CalculadoraPage';
+import { TutorPage } from '@/pages/TutorPage';
+import { MaisPage } from '@/pages/MaisPage';
 import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
@@ -110,6 +113,12 @@ const Index = () => {
         return <PremiumPage onNavigateToAuth={handleNavigateToAuth} />;
       case 'auth':
         return <AuthPage onBack={() => setActiveTab('premium')} onAuthSuccess={handleAuthSuccess} />;
+      case 'calculadora':
+        return <CalculadoraPage />;
+      case 'tutor':
+        return <TutorPage onNavigateToPremium={handleNavigateToPremium} />;
+      case 'mais':
+        return <MaisPage onNavigate={setActiveTab} />;
       default:
         return <FeedPage />;
     }

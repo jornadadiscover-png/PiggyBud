@@ -1,4 +1,4 @@
-import { Home, FileSpreadsheet, BarChart3, Settings, User, Crown } from 'lucide-react';
+import { Home, FileSpreadsheet, Crown, Calculator, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePremiumStore } from '@/stores/usePremiumStore';
 
@@ -10,10 +10,13 @@ interface BottomNavProps {
 const tabs = [
   { id: 'feed', label: 'Feed', icon: Home },
   { id: 'planilha', label: 'Planilha', icon: FileSpreadsheet },
+  { id: 'calculadora', label: 'Calc', icon: Calculator },
   { id: 'premium', label: 'Premium', icon: Crown },
-  { id: 'config', label: 'Config', icon: Settings },
-  { id: 'perfil', label: 'Perfil', icon: User },
+  { id: 'mais', label: 'Mais', icon: MoreHorizontal },
 ];
+
+// Tabs that should highlight the "Mais" entry as active
+const maisChildren = ['mais', 'config', 'perfil', 'relatorios', 'tutor', 'auth'];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const { isPremium } = usePremiumStore();
@@ -23,7 +26,9 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = tab.id === 'mais'
+            ? maisChildren.includes(activeTab)
+            : activeTab === tab.id;
           const isPremiumTab = tab.id === 'premium';
           
           return (
