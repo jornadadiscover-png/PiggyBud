@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_tutor_posts: {
+        Row: {
+          concept_explanation: string
+          concept_title: string
+          created_at: string
+          id: string
+          post_date: string
+          sources: Json
+          summary: string
+          tip: string
+          title: string
+        }
+        Insert: {
+          concept_explanation: string
+          concept_title: string
+          created_at?: string
+          id?: string
+          post_date: string
+          sources?: Json
+          summary: string
+          tip: string
+          title: string
+        }
+        Update: {
+          concept_explanation?: string
+          concept_title?: string
+          created_at?: string
+          id?: string
+          post_date?: string
+          sources?: Json
+          summary?: string
+          tip?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
