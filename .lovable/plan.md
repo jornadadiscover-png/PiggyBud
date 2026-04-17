@@ -1,77 +1,115 @@
 
 
-# Plano: Limpar Premium + Remover Bancos + Novas Features Premium
+# Plano: Calculadora Especial + Tutor Diário de Investimentos
 
-## Analise do Estado Atual
+## Visão Geral
 
-### Features Premium listadas vs implementadas:
-| Feature | Listada | Funciona | Status |
-|---------|---------|----------|--------|
-| Relatórios com IA | Sim | Sim (PremiumGate em RelatoriosPage) | OK |
-| Exportar PDF/Excel | Sim | Sim (PremiumGate em PerfilPage) | OK |
-| Metas Ilimitadas | Sim | NAO - nenhum gate implementado | Remover da lista |
-| Categorias Personalizadas | Sim | NAO - nao existe funcionalidade | Remover da lista |
-| Histórico Completo | Sim | NAO - nenhum gate implementado | Remover da lista |
-| Desafios Exclusivos | Sim | Sim (PremiumGate em ChallengesCard) | OK |
-| Sem Anúncios | Sim | NAO - nao ha anuncios | Remover |
-
-### Bancos Monitorados (ConfigPage):
-- A secao inteira so servia para a leitura automatica de notificacoes que foi removida
-- `enabledBanks`, `toggleBank` no store e tipos `Bank` nao tem mais uso funcional
+Adicionar duas novas seções ao app:
+1. **Calculadora Financeira** — gratuita, com cálculos comuns e especiais (juros compostos, financiamento, meta de economia, etc.)
+2. **Tutor de Investimentos** — Premium, com post diário gerado por IA às 7h (Brasília) com resumo de notícias + dicas educativas
 
 ---
 
-## Mudancas
+## 1. Calculadora Financeira (gratuita)
 
-### 1. Remover "Sem Anúncios" e features que nao funcionam
-- **`src/pages/PremiumPage.tsx`**: Remover "Sem Anúncios", "Metas Ilimitadas", "Categorias Personalizadas", "Histórico Completo" da lista
-- **`src/types/index.ts`**: Remover `'no-ads'`, `'unlimited-goals'`, `'custom-categories'`, `'full-history'` de `PremiumFeature`
+Nova página `src/pages/CalculadoraPage.tsx` com abas:
 
-### 2. Adicionar novas features Premium reais
-Substituir os itens removidos por funcionalidades que REALMENTE funcionam ou serao implementadas agora:
+| Aba | Funções |
+|-----|---------|
+| **Comum** | Calculadora simples (+, −, ×, ÷, %) |
+| **Juros Compostos** | Valor inicial + aporte mensal + taxa + tempo → montante final + gráfico |
+| **Financiamento** | Valor + entrada + taxa + parcelas → valor da parcela (Tabela Price) |
+| **Meta de Economia** | Quanto guardar/mês para atingir um valor em X meses |
+| **Conversor** | Quanto rende R$X no CDI/Poupança/Tesouro Selic (taxas fixas embutidas) |
 
-| Nova Feature | Descricao | Implementacao |
-|-------------|-----------|---------------|
-| Importacao com IA | Extrair transacoes de imagens e documentos (ja funciona!) | Adicionar PremiumGate no PasteNotificationDialog para upload de arquivo |
-| Temas Premium | Cores e temas visuais exclusivos (dark/light/custom) | Novo seletor de tema no Perfil com gate |
-| Resumo Mensal com IA | Analise inteligente dos gastos do mes com dicas | Novo card no RelatoriosPage usando edge function com Gemini |
+Tudo client-side, sem precisar de IA. Adicionar entrada no `BottomNav` substituindo ou adicionando ao lado dos itens atuais.
 
-Lista Premium final:
-1. Relatórios com IA (ja funciona)
-2. Exportar PDF/Excel (ja funciona)
-3. Desafios Exclusivos (ja funciona)
-4. Importacao com IA (gate no upload de arquivo)
-5. Resumo Mensal com IA (novo - edge function)
-6. Temas Premium (novo - seletor de tema)
+## 2. Tutor de Investimentos (Premium)
 
-### 3. Remover secao de Bancos Monitorados
-- **`src/pages/ConfigPage.tsx`**: Remover Card "Bancos Monitorados" inteiro (linhas 57-95), remover imports de `Bank, bankLabels, bankColors`, remover `allBanks` array, remover `Smartphone`
-- **`src/stores/useSettingsStore.ts`**: Remover `enabledBanks` do defaultSettings e `toggleBank` do store
-- **`src/types/index.ts`**: Remover `enabledBanks` de `AppSettings`; manter tipos `Bank`/`bankLabels`/`bankColors` pois sao usados em `Transaction.bank`
+Nova página `src/pages/TutorPage.tsx` com:
+- **Post do dia** (card grande no topo): resumo de notícias + 1 dica prática
+- **Histórico** dos últimos 7 posts
+- **Biblioteca de explicações** por tipo de investimento (Tesouro, CDB, Ações, FIIs, Cripto, Fundos) — cards expansíveis com linguagem leiga e exemplos numéricos
 
-### 4. Implementar "Resumo Mensal com IA" (nova edge function)
-- Criar `supabase/functions/ai-monthly-summary/index.ts` que recebe transacoes do mes e retorna analise com dicas usando Gemini 2.5 Flash
-- Adicionar card no RelatoriosPage com PremiumGate que chama esta funcao
+### Arquitetura técnica
 
-### 5. Implementar "Temas Premium"
-- Adicionar opcoes de tema (padrao, escuro, amber/gold) no PerfilPage ou ConfigPage
-- Gated por PremiumGate
+```text
+Cron pg_cron (todo dia 10:00 UTC = 07:00 Brasília)
+       │
+       └──→ Edge Function: generate-daily-tutor
+              │
+              ├── Busca notícias de 3 fontes gratuitas:
+              │     • InfoMoney RSS
+              │     • Valor Investe RSS
+              │     • UOL Economia RSS
+              │
+              ├── Envia conteúdo + prompt para Lovable AI (Gemini 2.5 Flash)
+              │     "Resuma em linguagem simples para iniciante,
+              │      com 1 dica prática e 1 conceito explicado"
+              │
+              └── Salva post na tabela `daily_tutor_posts`
 
-### 6. Gate na importacao com IA
-- **`src/components/PasteNotificationDialog.tsx`**: O botao de upload de arquivo so funciona para Premium (colar texto continua gratis)
+Frontend: TutorPage lê posts via supabase.from('daily_tutor_posts')
+```
+
+### Banco de dados (nova tabela)
+
+```text
+daily_tutor_posts
+  id, post_date (unique), title, summary,
+  tip, concept_title, concept_explanation,
+  sources (jsonb), created_at
+```
+
+RLS: leitura pública (todos podem ver), insert apenas via service role (edge function).
+
+### Edge Functions (criar)
+
+| Função | Propósito |
+|--------|-----------|
+| `generate-daily-tutor` | Busca RSS, chama IA, insere post. Acionada por pg_cron diário |
+| Trigger manual | Mesma função pode ser chamada manualmente para teste/backfill |
+
+### Cron (pg_cron + pg_net)
+
+Agendamento: `0 10 * * *` (10h UTC = 7h Brasília, considerando horário padrão).
+
+### PremiumGate
+
+A `TutorPage` inteira fica protegida com `PremiumGate` (feature: novo `'daily-tutor'` em `PremiumFeature`). Usuários free veem preview borrado + CTA para Premium.
+
+## 3. Atualizações de UI
+
+- **`BottomNav.tsx`**: reorganizar para incluir nova aba (sugiro substituir "Config" por menu "Mais" ou adicionar "Tutor" no lugar de uma das abas menos usadas — perguntar ao usuário)
+- **`PremiumPage.tsx`**: adicionar "Tutor Diário de Investimentos" e "Calculadora Financeira" (a calculadora é grátis mas vale destacar como benefício do app) na lista de features
+- **`Index.tsx`**: registrar rotas `calculadora` e `tutor` no switch de tabs
+- **`src/types/index.ts`**: adicionar `'daily-tutor'` em `PremiumFeature`
+- **`usePremiumStore.ts`**: incluir `'daily-tutor'` na lista de features Premium
 
 ---
 
 ## Resumo de Arquivos
 
-| Arquivo | Acao |
+| Arquivo | Ação |
 |---------|------|
-| `src/pages/PremiumPage.tsx` | Atualizar lista de features |
-| `src/types/index.ts` | Limpar PremiumFeature, remover enabledBanks de AppSettings |
-| `src/pages/ConfigPage.tsx` | Remover secao Bancos Monitorados |
-| `src/stores/useSettingsStore.ts` | Remover enabledBanks e toggleBank |
-| `src/components/PasteNotificationDialog.tsx` | Adicionar PremiumGate no upload |
-| `supabase/functions/ai-monthly-summary/index.ts` | Criar - resumo mensal com IA |
-| `src/pages/RelatoriosPage.tsx` | Adicionar card Resumo com IA |
-| `src/pages/PerfilPage.tsx` ou `ConfigPage.tsx` | Adicionar seletor de temas Premium |
+| `src/pages/CalculadoraPage.tsx` | Criar — calculadora com 5 abas |
+| `src/pages/TutorPage.tsx` | Criar — tutor diário Premium |
+| `src/components/BottomNav.tsx` | Editar — adicionar abas novas |
+| `src/components/Index.tsx` | Editar — registrar novas rotas |
+| `src/pages/PremiumPage.tsx` | Editar — listar nova feature |
+| `src/types/index.ts` | Editar — adicionar `daily-tutor` |
+| `src/stores/usePremiumStore.ts` | Editar — incluir feature |
+| Tabela `daily_tutor_posts` | Criar via migration |
+| `supabase/functions/generate-daily-tutor/index.ts` | Criar — RSS + IA |
+| pg_cron + pg_net | Agendar 10h UTC diário |
+
+## Pergunta antes de implementar
+
+Como o `BottomNav` só comporta 5 abas e já está cheio (Feed, Planilha, Premium, Config, Perfil), preciso decidir como acomodar **Calculadora** e **Tutor**:
+
+1. **Substituir 2 abas existentes** por Calculadora e Tutor (mover Config e Perfil para um menu hambúrguer ou para dentro do Perfil)
+2. **Criar uma aba "Mais"** que abre um menu com Calculadora, Tutor, Config e Perfil
+3. **Deixar como sub-páginas** acessíveis a partir do Feed (cards de atalho na home)
+
+Recomendo a opção **2** (menu "Mais") por ser a mais escalável e padrão em apps móveis. Confirma?
 
