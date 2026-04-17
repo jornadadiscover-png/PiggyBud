@@ -40,6 +40,22 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Test accounts with permanent Premium access
+    const TEST_PREMIUM_EMAILS = ["welitonbp@hotmail.com"];
+    if (TEST_PREMIUM_EMAILS.includes(user.email.toLowerCase())) {
+      logStep("Test premium account - granting access", { email: user.email });
+      const farFuture = new Date();
+      farFuture.setFullYear(farFuture.getFullYear() + 10);
+      return new Response(
+        JSON.stringify({
+          subscribed: true,
+          product_id: "test_account",
+          subscription_end: farFuture.toISOString(),
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
