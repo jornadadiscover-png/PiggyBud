@@ -1,115 +1,82 @@
 
 
-# Plano: Calculadora Especial + Tutor Diário de Investimentos
+# Plano: Atalho do Tutor no BottomNav + Estratégia de Login
 
-## Visão Geral
+## Parte 1 — Ícone do Tutor ao lado do Feed
 
-Adicionar duas novas seções ao app:
-1. **Calculadora Financeira** — gratuita, com cálculos comuns e especiais (juros compostos, financiamento, meta de economia, etc.)
-2. **Tutor de Investimentos** — Premium, com post diário gerado por IA às 7h (Brasília) com resumo de notícias + dicas educativas
+Adicionar nova aba **"Tutor"** no `BottomNav` logo após "Feed", usando o ícone `GraduationCap` (já usado no MaisPage para essa seção, mantendo consistência visual).
 
----
+### Problema: 6 abas em 411px de largura
+O nav atualmente tem 5 abas. Adicionar uma 6ª deixa cada botão com ~68px — ainda funcional, mas apertado. Solução: **encurtar labels** (`Calc`, `Tutor`, `Mais`) e remover o emoji `👑 PRO` (manter só "Premium" colorido em âmbar quando ativo).
 
-## 1. Calculadora Financeira (gratuita)
-
-Nova página `src/pages/CalculadoraPage.tsx` com abas:
-
-| Aba | Funções |
-|-----|---------|
-| **Comum** | Calculadora simples (+, −, ×, ÷, %) |
-| **Juros Compostos** | Valor inicial + aporte mensal + taxa + tempo → montante final + gráfico |
-| **Financiamento** | Valor + entrada + taxa + parcelas → valor da parcela (Tabela Price) |
-| **Meta de Economia** | Quanto guardar/mês para atingir um valor em X meses |
-| **Conversor** | Quanto rende R$X no CDI/Poupança/Tesouro Selic (taxas fixas embutidas) |
-
-Tudo client-side, sem precisar de IA. Adicionar entrada no `BottomNav` substituindo ou adicionando ao lado dos itens atuais.
-
-## 2. Tutor de Investimentos (Premium)
-
-Nova página `src/pages/TutorPage.tsx` com:
-- **Post do dia** (card grande no topo): resumo de notícias + 1 dica prática
-- **Histórico** dos últimos 7 posts
-- **Biblioteca de explicações** por tipo de investimento (Tesouro, CDB, Ações, FIIs, Cripto, Fundos) — cards expansíveis com linguagem leiga e exemplos numéricos
-
-### Arquitetura técnica
-
-```text
-Cron pg_cron (todo dia 10:00 UTC = 07:00 Brasília)
-       │
-       └──→ Edge Function: generate-daily-tutor
-              │
-              ├── Busca notícias de 3 fontes gratuitas:
-              │     • InfoMoney RSS
-              │     • Valor Investe RSS
-              │     • UOL Economia RSS
-              │
-              ├── Envia conteúdo + prompt para Lovable AI (Gemini 2.5 Flash)
-              │     "Resuma em linguagem simples para iniciante,
-              │      com 1 dica prática e 1 conceito explicado"
-              │
-              └── Salva post na tabela `daily_tutor_posts`
-
-Frontend: TutorPage lê posts via supabase.from('daily_tutor_posts')
-```
-
-### Banco de dados (nova tabela)
-
-```text
-daily_tutor_posts
-  id, post_date (unique), title, summary,
-  tip, concept_title, concept_explanation,
-  sources (jsonb), created_at
-```
-
-RLS: leitura pública (todos podem ver), insert apenas via service role (edge function).
-
-### Edge Functions (criar)
-
-| Função | Propósito |
-|--------|-----------|
-| `generate-daily-tutor` | Busca RSS, chama IA, insere post. Acionada por pg_cron diário |
-| Trigger manual | Mesma função pode ser chamada manualmente para teste/backfill |
-
-### Cron (pg_cron + pg_net)
-
-Agendamento: `0 10 * * *` (10h UTC = 7h Brasília, considerando horário padrão).
-
-### PremiumGate
-
-A `TutorPage` inteira fica protegida com `PremiumGate` (feature: novo `'daily-tutor'` em `PremiumFeature`). Usuários free veem preview borrado + CTA para Premium.
-
-## 3. Atualizações de UI
-
-- **`BottomNav.tsx`**: reorganizar para incluir nova aba (sugiro substituir "Config" por menu "Mais" ou adicionar "Tutor" no lugar de uma das abas menos usadas — perguntar ao usuário)
-- **`PremiumPage.tsx`**: adicionar "Tutor Diário de Investimentos" e "Calculadora Financeira" (a calculadora é grátis mas vale destacar como benefício do app) na lista de features
-- **`Index.tsx`**: registrar rotas `calculadora` e `tutor` no switch de tabs
-- **`src/types/index.ts`**: adicionar `'daily-tutor'` em `PremiumFeature`
-- **`usePremiumStore.ts`**: incluir `'daily-tutor'` na lista de features Premium
+### Mudanças
+- **`src/components/BottomNav.tsx`**: adicionar `{ id: 'tutor', label: 'Tutor', icon: GraduationCap }` na posição 2 (entre Feed e Planilha); remover `'tutor'` do array `maisChildren` (passa a ser aba própria); reduzir padding horizontal para caber 6 itens
+- **`src/pages/MaisPage.tsx`**: remover o item "Tutor de Investimentos" (já fica acessível direto pelo nav)
 
 ---
 
-## Resumo de Arquivos
+## Parte 2 — Análise: Como está o login hoje
 
-| Arquivo | Ação |
-|---------|------|
-| `src/pages/CalculadoraPage.tsx` | Criar — calculadora com 5 abas |
-| `src/pages/TutorPage.tsx` | Criar — tutor diário Premium |
-| `src/components/BottomNav.tsx` | Editar — adicionar abas novas |
-| `src/components/Index.tsx` | Editar — registrar novas rotas |
-| `src/pages/PremiumPage.tsx` | Editar — listar nova feature |
-| `src/types/index.ts` | Editar — adicionar `daily-tutor` |
-| `src/stores/usePremiumStore.ts` | Editar — incluir feature |
-| Tabela `daily_tutor_posts` | Criar via migration |
-| `supabase/functions/generate-daily-tutor/index.ts` | Criar — RSS + IA |
-| pg_cron + pg_net | Agendar 10h UTC diário |
+Estado atual do app:
+1. **PIN local de 4-6 dígitos** — protege o app, mas é o MESMO PIN para qualquer pessoa que abrir (não diferencia usuários)
+2. **Email/senha (Supabase Auth)** — existe, mas só é usado para gerenciar assinatura Premium; o resto do app funciona 100% local
+3. **Dados ficam no `localStorage`** do dispositivo — não sincronizam entre aparelhos nem distinguem usuários
 
-## Pergunta antes de implementar
+**Problema real**: o PIN não diferencia usuários. Se duas pessoas usam o mesmo aparelho, veem as mesmas transações. E o login com email só serve pra Premium, o que confunde.
 
-Como o `BottomNav` só comporta 5 abas e já está cheio (Feed, Planilha, Premium, Config, Perfil), preciso decidir como acomodar **Calculadora** e **Tutor**:
+### Recomendação: **Email/senha como entrada principal + PIN opcional como atalho**
 
-1. **Substituir 2 abas existentes** por Calculadora e Tutor (mover Config e Perfil para um menu hambúrguer ou para dentro do Perfil)
-2. **Criar uma aba "Mais"** que abre um menu com Calculadora, Tutor, Config e Perfil
-3. **Deixar como sub-páginas** acessíveis a partir do Feed (cards de atalho na home)
+Esta é a abordagem padrão de apps financeiros (Nubank, C6, PicPay):
 
-Recomendo a opção **2** (menu "Mais") por ser a mais escalável e padrão em apps móveis. Confirma?
+```text
+Primeira vez: Cadastro com email/senha → cria conta
+Próximas vezes: PIN rápido (atalho do mesmo usuário)
+Trocar de usuário: Sair → entrar com outro email
+```
+
+**Vantagens**:
+- Diferencia usuários de verdade (cada email = uma conta)
+- PIN continua sendo o acesso rápido do dia a dia
+- Permite no futuro sincronizar dados na nuvem (multi-dispositivo)
+- Premium fica naturalmente ligado ao usuário logado
+- Cadastro fácil: só email + senha (sem precisar verificar email se a gente desativar)
+
+### Mudanças propostas (Parte 2)
+
+1. **Login obrigatório no primeiro uso**
+   - Tela de boas-vindas com botões "Criar conta" / "Entrar"
+   - Sem login, app não abre (exceto talvez "modo convidado" — perguntar)
+   
+2. **PIN vira atalho do usuário logado**
+   - Após login, usuário pode opcionalmente criar PIN
+   - PIN só desbloqueia a sessão atual; logout limpa o PIN local
+   
+3. **Auto-confirmação de email ativada** (sem precisar verificar email para entrar) — facilita onboarding
+   
+4. **Botão "Sair" no Perfil** — limpa sessão e pede login de novo
+
+### Arquivos afetados (Parte 2)
+- **`src/pages/Index.tsx`**: gate de auth antes de qualquer tela; ordem: Auth → PIN (se ativado) → App
+- **`src/pages/AuthPage.tsx`**: virar tela inicial com visual mais acolhedor (logo grande, mensagem de boas-vindas)
+- **`src/stores/useSettingsStore.ts`**: vincular PIN ao usuário logado (chave do localStorage com `userId`)
+- **`src/pages/PerfilPage.tsx`**: adicionar botão "Sair"
+- **Configuração Supabase**: ativar auto-confirm de email
+
+---
+
+## Decisão necessária
+
+Antes de implementar a Parte 2, preciso confirmar 2 pontos:
+
+**Pergunta 1 — Modo convidado?**
+- (A) **Login obrigatório** — todo usuário precisa criar conta para usar o app (recomendado, diferencia usuários de verdade)
+- (B) **Modo convidado opcional** — usuário pode usar sem conta (dados só locais), mas pode criar conta depois
+
+**Pergunta 2 — Sincronização de dados na nuvem?**
+- (A) **Manter dados locais por enquanto** — login só identifica o usuário, transações continuam no `localStorage` do aparelho
+- (B) **Sincronizar transações na nuvem** — requer criar tabelas, migrations, RLS, refatorar todos os stores (trabalho maior, fica para próxima iteração)
+
+Recomendo **1A + 2A**: login obrigatório (resolve o problema de diferenciar usuários sem complicar) e dados continuam locais por enquanto (sincronização é uma feature grande e separada).
+
+Confirma essas escolhas para eu prosseguir? Se preferir outra combinação, me diz qual.
 
