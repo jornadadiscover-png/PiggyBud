@@ -14,12 +14,13 @@ import { CalculadoraPage } from '@/pages/CalculadoraPage';
 import { TutorPage } from '@/pages/TutorPage';
 import { MaisPage } from '@/pages/MaisPage';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
-  const { isLocked, hasSetupPin, settings, unlock } = useSettingsStore();
-  const [showSetupPin, setShowSetupPin] = useState(false);
+  const { isLocked, hasSetupPin, settings, unlock, bindPinToUser } = useSettingsStore();
   const { checkSubscription, checkAuth, isAuthenticated } = usePremiumStore();
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -29,7 +30,7 @@ const Index = () => {
           isAuthenticated: true,
           userEmail: session.user.email || null,
         });
-        // Check subscription on login
+        bindPinToUser(session.user.id);
         if (event === 'SIGNED_IN') {
           checkSubscription();
         }
@@ -42,8 +43,13 @@ const Index = () => {
     });
 
     // Check auth on mount
-    checkAuth().then((authenticated) => {
-      if (authenticated) checkSubscription();
+    checkAuth().then(async (authenticated) => {
+      if (authenticated) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) bindPinToUser(session.user.id);
+        checkSubscription();
+      }
+      setAuthChecked(true);
     });
 
     return () => subscription.unsubscribe();
@@ -63,38 +69,27 @@ const Index = () => {
     if (tab) setActiveTab(tab);
   }, []);
 
-  useEffect(() => {
-    if (!hasSetupPin && settings.pinEnabled === false) {
-      const timer = setTimeout(() => {
-        setShowSetupPin(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasSetupPin, settings.pinEnabled]);
-
-  const handleNavigateToAuth = useCallback(() => {
-    setActiveTab('auth');
-  }, []);
-
-  const handleAuthSuccess = useCallback(() => {
-    setActiveTab('premium');
-  }, []);
-
   const handleNavigateToPremium = useCallback(() => {
     setActiveTab('premium');
   }, []);
 
-  if (isLocked && settings.pinEnabled) {
-    return <PinLockScreen mode="verify" onSuccess={unlock} />;
+  // Loading while checking auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  if (showSetupPin && !hasSetupPin) {
-    return (
-      <PinLockScreen 
-        mode="setup" 
-        onSuccess={() => setShowSetupPin(false)} 
-      />
-    );
+  // GATE 1: Auth required
+  if (!isAuthenticated) {
+    return <AuthPage onAuthSuccess={() => setActiveTab('feed')} />;
+  }
+
+  // GATE 2: PIN lock (if user has PIN set)
+  if (isLocked && settings.pinEnabled) {
+    return <PinLockScreen mode="verify" onSuccess={unlock} />;
   }
 
   const renderPage = () => {
@@ -110,9 +105,7 @@ const Index = () => {
       case 'perfil':
         return <PerfilPage onNavigateToPremium={handleNavigateToPremium} />;
       case 'premium':
-        return <PremiumPage onNavigateToAuth={handleNavigateToAuth} />;
-      case 'auth':
-        return <AuthPage onBack={() => setActiveTab('premium')} onAuthSuccess={handleAuthSuccess} />;
+        return <PremiumPage onNavigateToAuth={() => {}} />;
       case 'calculadora':
         return <CalculadoraPage />;
       case 'tutor':

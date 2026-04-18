@@ -7,13 +7,15 @@ interface SettingsStore {
   profile: UserProfile;
   isLocked: boolean;
   hasSetupPin: boolean;
+  pinUserId: string | null; // Which user this PIN belongs to
   updateSettings: (updates: Partial<AppSettings>) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
-  setPin: (pin: string) => void;
+  setPin: (pin: string, userId?: string | null) => void;
   verifyPin: (pin: string) => boolean;
   lock: () => void;
   unlock: () => void;
   resetPin: () => void;
+  bindPinToUser: (userId: string | null) => void;
 }
 
 const defaultSettings: AppSettings = {
@@ -41,6 +43,7 @@ export const useSettingsStore = create<SettingsStore>()(
       profile: defaultProfile,
       isLocked: false,
       hasSetupPin: false,
+      pinUserId: null,
 
       updateSettings: (updates) => {
         set((state) => ({
@@ -54,11 +57,12 @@ export const useSettingsStore = create<SettingsStore>()(
         }));
       },
 
-      setPin: (pin) => {
+      setPin: (pin, userId = null) => {
         set((state) => ({
           settings: { ...state.settings, pin, pinEnabled: true },
           hasSetupPin: true,
           isLocked: false,
+          pinUserId: userId ?? state.pinUserId,
         }));
       },
 
@@ -83,7 +87,23 @@ export const useSettingsStore = create<SettingsStore>()(
           settings: { ...state.settings, pin: undefined, pinEnabled: false },
           hasSetupPin: false,
           isLocked: false,
+          pinUserId: null,
         }));
+      },
+
+      bindPinToUser: (userId) => {
+        const { pinUserId, settings } = get();
+        // If PIN belongs to a different user, clear it
+        if (pinUserId && userId && pinUserId !== userId) {
+          set({
+            settings: { ...settings, pin: undefined, pinEnabled: false },
+            hasSetupPin: false,
+            isLocked: false,
+            pinUserId: userId,
+          });
+        } else if (!pinUserId && userId) {
+          set({ pinUserId: userId });
+        }
       },
     }),
     {
@@ -92,6 +112,7 @@ export const useSettingsStore = create<SettingsStore>()(
         settings: state.settings,
         profile: state.profile,
         hasSetupPin: state.hasSetupPin,
+        pinUserId: state.pinUserId,
       }),
       onRehydrateStorage: () => (state) => {
         // Lock on app start if PIN is enabled

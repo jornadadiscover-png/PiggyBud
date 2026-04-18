@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Mail, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Loader2, Sparkles, Shield, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import piggyLogo from '@/assets/piggy-bud-logo.png';
 
@@ -13,8 +13,10 @@ interface AuthPageProps {
   onAuthSuccess?: () => void;
 }
 
+type View = 'welcome' | 'login' | 'signup';
+
 export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [view, setView] = useState<View>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,17 +27,15 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
     setLoading(true);
 
     try {
-      if (mode === 'signup') {
+      if (view === 'signup') {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast({
-          title: '📧 Verifique seu email!',
-          description: 'Enviamos um link de confirmação para seu email.',
-        });
+        toast({ title: '✅ Conta criada!', description: 'Bem-vindo ao Piggy Bud.' });
+        onAuthSuccess?.();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -55,30 +55,74 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
     }
   };
 
-  return (
-    <div className="flex flex-col min-h-screen pb-20 p-4">
-      {/* Header */}
-      <header className="mb-6 pt-4">
-        {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Voltar
+  // Welcome screen
+  if (view === 'welcome') {
+    return (
+      <div className="flex flex-col min-h-screen p-6 safe-top safe-bottom">
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div className="w-32 h-32 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-glow p-1">
+            <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-3xl object-cover" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">Piggy Bud</h1>
+          <p className="text-muted-foreground mb-8 max-w-xs">
+            Seu porquinho inteligente para controlar gastos e investir melhor
+          </p>
+
+          <div className="w-full max-w-sm space-y-3 mb-8">
+            <div className="flex items-center gap-3 text-left">
+              <div className="p-2 rounded-xl bg-primary/10"><Sparkles className="w-4 h-4 text-primary" /></div>
+              <p className="text-sm text-muted-foreground">Mascote reativo aos seus gastos</p>
+            </div>
+            <div className="flex items-center gap-3 text-left">
+              <div className="p-2 rounded-xl bg-success/10"><TrendingUp className="w-4 h-4 text-success" /></div>
+              <p className="text-sm text-muted-foreground">Tutor diário de investimentos</p>
+            </div>
+            <div className="flex items-center gap-3 text-left">
+              <div className="p-2 rounded-xl bg-amber-500/10"><Shield className="w-4 h-4 text-amber-600" /></div>
+              <p className="text-sm text-muted-foreground">Seus dados protegidos por PIN</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full max-w-sm mx-auto space-y-3">
+          <Button
+            className="w-full h-12 rounded-xl font-bold gradient-primary text-primary-foreground"
+            onClick={() => setView('signup')}
+          >
+            Criar conta grátis
           </Button>
-        )}
+          <Button
+            variant="outline"
+            className="w-full h-12 rounded-xl font-semibold"
+            onClick={() => setView('login')}
+          >
+            Já tenho conta
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen pb-20 p-4 safe-top">
+      <header className="mb-6 pt-4">
+        <Button variant="ghost" size="sm" onClick={() => setView('welcome')} className="mb-4 -ml-2">
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Voltar
+        </Button>
         <div className="text-center">
           <img src={piggyLogo} alt="Piggy Bud" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg object-cover" />
           <h1 className="text-2xl font-bold mb-1">
-            {mode === 'login' ? 'Entrar' : 'Criar Conta'}
+            {view === 'login' ? 'Entrar' : 'Criar Conta'}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {mode === 'login'
-              ? 'Acesse sua conta para gerenciar assinaturas'
-              : 'Crie sua conta para assinar o Premium'}
+            {view === 'login'
+              ? 'Bem-vindo de volta!'
+              : 'É rápido e gratuito'}
           </p>
         </div>
       </header>
 
-      {/* Form */}
       <Card className="border-0 shadow-soft">
         <CardContent className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,7 +165,7 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {mode === 'login' ? 'Entrar' : 'Criar Conta'}
+              {view === 'login' ? 'Entrar' : 'Criar Conta'}
             </Button>
           </form>
 
@@ -129,9 +173,9 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
             <button
               type="button"
               className="text-sm text-primary hover:underline"
-              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+              onClick={() => setView(view === 'login' ? 'signup' : 'login')}
             >
-              {mode === 'login'
+              {view === 'login'
                 ? 'Não tem conta? Criar agora'
                 : 'Já tem conta? Entrar'}
             </button>

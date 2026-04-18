@@ -1,13 +1,11 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Calculator, GraduationCap, Settings, User, ChevronRight, BarChart3 } from 'lucide-react';
+import { Settings, User, ChevronRight, BarChart3 } from 'lucide-react';
 
 interface MaisPageProps {
   onNavigate: (tab: string) => void;
 }
 
 const items = [
-  { id: 'calculadora', label: 'Calculadora', desc: 'Cálculos comuns e financeiros', icon: Calculator, color: 'text-primary bg-primary/10' },
-  { id: 'tutor', label: 'Tutor de Investimentos', desc: 'Post diário com IA (Premium)', icon: GraduationCap, color: 'text-amber-600 bg-amber-500/10' },
   { id: 'relatorios', label: 'Relatórios', desc: 'Gráficos e análises dos seus gastos', icon: BarChart3, color: 'text-success bg-success/10' },
   { id: 'config', label: 'Configurações', desc: 'PIN, temas, lembretes', icon: Settings, color: 'text-muted-foreground bg-muted' },
   { id: 'perfil', label: 'Perfil', desc: 'Sua conta e dados', icon: User, color: 'text-primary bg-primary/10' },
