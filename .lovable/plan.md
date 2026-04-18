@@ -1,82 +1,53 @@
 
 
-# Plano: Atalho do Tutor no BottomNav + Estratégia de Login
+O usuário relata que mudanças aparecem no preview do editor mas NÃO aparecem ao acessar o link publicado ou pelo app PWA instalado.
 
-## Parte 1 — Ícone do Tutor ao lado do Feed
+**Diagnóstico:**
 
-Adicionar nova aba **"Tutor"** no `BottomNav` logo após "Feed", usando o ícone `GraduationCap` (já usado no MaisPage para essa seção, mantendo consistência visual).
+Dois problemas distintos, mas relacionados:
 
-### Problema: 6 abas em 411px de largura
-O nav atualmente tem 5 abas. Adicionar uma 6ª deixa cada botão com ~68px — ainda funcional, mas apertado. Solução: **encurtar labels** (`Calc`, `Tutor`, `Mais`) e remover o emoji `👑 PRO` (manter só "Premium" colorido em âmbar quando ativo).
+1. **Link publicado (piggybud.lovable.app) desatualizado:** Frontend só vai pro ar depois de clicar em "Publish → Update". As mudanças recentes (Tutor no BottomNav, nova AuthPage, gate de auth, etc.) ainda estão só no preview.
 
-### Mudanças
-- **`src/components/BottomNav.tsx`**: adicionar `{ id: 'tutor', label: 'Tutor', icon: GraduationCap }` na posição 2 (entre Feed e Planilha); remover `'tutor'` do array `maisChildren` (passa a ser aba própria); reduzir padding horizontal para caber 6 itens
-- **`src/pages/MaisPage.tsx`**: remover o item "Tutor de Investimentos" (já fica acessível direto pelo nav)
+2. **PWA mostrando versão antiga:** O app já foi instalado antes com um service worker que está cacheando a versão antiga. Mesmo depois de republicar, o SW serve o cache até detectar atualização — e às vezes nem assim atualiza sozinho.
 
----
+Olhando o `vite.config.ts`, a config PWA usa `registerType: 'autoUpdate'` — isso DEVERIA atualizar automaticamente, mas:
+- O `main.tsx` desregistra SW só em preview/iframe (correto)
+- Em produção (piggybud.lovable.app) o SW fica ativo e cacheado
+- O `globPatterns` precachea `js/css/html` — o cache antigo persiste até o novo SW assumir, o que requer fechar TODAS as abas do app
 
-## Parte 2 — Análise: Como está o login hoje
+**Solução em duas partes:**
 
-Estado atual do app:
-1. **PIN local de 4-6 dígitos** — protege o app, mas é o MESMO PIN para qualquer pessoa que abrir (não diferencia usuários)
-2. **Email/senha (Supabase Auth)** — existe, mas só é usado para gerenciar assinatura Premium; o resto do app funciona 100% local
-3. **Dados ficam no `localStorage`** do dispositivo — não sincronizam entre aparelhos nem distinguem usuários
+### Parte 1 — Republicar (ação do usuário)
 
-**Problema real**: o PIN não diferencia usuários. Se duas pessoas usam o mesmo aparelho, veem as mesmas transações. E o login com email só serve pra Premium, o que confunde.
+O usuário precisa clicar em **Publish → Update** no canto superior direito do editor para enviar as mudanças ao ar. Sem isso, nada do que foi feito recentemente vai aparecer no `piggybud.lovable.app` nem no PWA.
 
-### Recomendação: **Email/senha como entrada principal + PIN opcional como atalho**
+### Parte 2 — Forçar atualização do PWA (mudança de código)
 
-Esta é a abordagem padrão de apps financeiros (Nubank, C6, PicPay):
+Adicionar lógica para:
+- Detectar quando há nova versão disponível
+- Mostrar um toast "Nova versão disponível! Atualizar agora" 
+- Ao clicar, chamar `skipWaiting()` + recarregar a página
 
-```text
-Primeira vez: Cadastro com email/senha → cria conta
-Próximas vezes: PIN rápido (atalho do mesmo usuário)
-Trocar de usuário: Sair → entrar com outro email
-```
+Isso resolve o problema do PWA "preso" na versão antiga, agora e no futuro.
 
-**Vantagens**:
-- Diferencia usuários de verdade (cada email = uma conta)
-- PIN continua sendo o acesso rápido do dia a dia
-- Permite no futuro sincronizar dados na nuvem (multi-dispositivo)
-- Premium fica naturalmente ligado ao usuário logado
-- Cadastro fácil: só email + senha (sem precisar verificar email se a gente desativar)
+**Mudanças:**
 
-### Mudanças propostas (Parte 2)
+| Arquivo | Mudança |
+|---------|---------|
+| `vite.config.ts` | Trocar `registerType: 'autoUpdate'` por `'prompt'` para controlar o update via UI |
+| `src/main.tsx` | Adicionar listener `useRegisterSW` que mostra toast de atualização quando nova versão chega |
+| (opcional) `src/components/PWAUpdatePrompt.tsx` | Componente novo que escuta o SW e mostra prompt |
 
-1. **Login obrigatório no primeiro uso**
-   - Tela de boas-vindas com botões "Criar conta" / "Entrar"
-   - Sem login, app não abre (exceto talvez "modo convidado" — perguntar)
-   
-2. **PIN vira atalho do usuário logado**
-   - Após login, usuário pode opcionalmente criar PIN
-   - PIN só desbloqueia a sessão atual; logout limpa o PIN local
-   
-3. **Auto-confirmação de email ativada** (sem precisar verificar email para entrar) — facilita onboarding
-   
-4. **Botão "Sair" no Perfil** — limpa sessão e pede login de novo
+**O que vou fazer no modo de implementação:**
 
-### Arquivos afetados (Parte 2)
-- **`src/pages/Index.tsx`**: gate de auth antes de qualquer tela; ordem: Auth → PIN (se ativado) → App
-- **`src/pages/AuthPage.tsx`**: virar tela inicial com visual mais acolhedor (logo grande, mensagem de boas-vindas)
-- **`src/stores/useSettingsStore.ts`**: vincular PIN ao usuário logado (chave do localStorage com `userId`)
-- **`src/pages/PerfilPage.tsx`**: adicionar botão "Sair"
-- **Configuração Supabase**: ativar auto-confirm de email
+1. Configurar `registerType: 'prompt'` no `vite.config.ts`
+2. Criar componente `PWAUpdatePrompt` que usa `useRegisterSW` do `virtual:pwa-register/react` para detectar updates e mostrar um toast Sonner com botão "Atualizar"
+3. Montar esse componente no `App.tsx`
 
----
+**Importante explicar ao usuário:**
 
-## Decisão necessária
-
-Antes de implementar a Parte 2, preciso confirmar 2 pontos:
-
-**Pergunta 1 — Modo convidado?**
-- (A) **Login obrigatório** — todo usuário precisa criar conta para usar o app (recomendado, diferencia usuários de verdade)
-- (B) **Modo convidado opcional** — usuário pode usar sem conta (dados só locais), mas pode criar conta depois
-
-**Pergunta 2 — Sincronização de dados na nuvem?**
-- (A) **Manter dados locais por enquanto** — login só identifica o usuário, transações continuam no `localStorage` do aparelho
-- (B) **Sincronizar transações na nuvem** — requer criar tabelas, migrations, RLS, refatorar todos os stores (trabalho maior, fica para próxima iteração)
-
-Recomendo **1A + 2A**: login obrigatório (resolve o problema de diferenciar usuários sem complicar) e dados continuam locais por enquanto (sincronização é uma feature grande e separada).
-
-Confirma essas escolhas para eu prosseguir? Se preferir outra combinação, me diz qual.
+- Mudanças de **frontend** (UI, telas, navegação) só aparecem no link publicado depois de clicar em **Publish → Update**
+- Mudanças de **backend** (edge functions, banco) já vão automaticamente
+- Para o **PWA já instalado**, depois de republicar o usuário precisa: fechar todas as abas/janelas do app e reabrir — ou aguardar o novo prompt de atualização que vou implementar
+- Em último caso, desinstalar e reinstalar o PWA
 
