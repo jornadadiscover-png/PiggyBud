@@ -23,6 +23,25 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+      });
+      if (result.redirected) return;
+      if (result.error) throw result.error;
+      onAuthSuccess?.();
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao entrar com Google',
+        description: error.message || 'Tente novamente',
+        variant: 'destructive',
+      });
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
