@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useTransactionStore } from '@/stores/useTransactionStore';
-import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock, Camera, X } from 'lucide-react';
+import { usePremiumStore } from '@/stores/usePremiumStore';
+import { User, Target, Trophy, Download, Trash2, Edit2, Check, Lock, Unlock, Camera, X, LogOut, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ExportReportDialog } from '@/components/ExportReportDialog';
 import { ChallengesCard } from '@/components/ChallengesCard';
@@ -98,6 +99,13 @@ interface PerfilPageProps {
 export function PerfilPage({ onNavigateToPremium }: PerfilPageProps) {
   const { profile, updateProfile } = useSettingsStore();
   const { transactions } = useTransactionStore();
+  const { userEmail, signOut } = usePremiumStore();
+
+  const handleSignOut = async () => {
+    if (!confirm('Deseja sair da sua conta? Você precisará fazer login novamente.')) return;
+    await signOut();
+    window.location.reload();
+  };
   const [editingName, setEditingName] = useState(false);
   const [editingGoal, setEditingGoal] = useState(false);
   const [name, setName] = useState(profile.name);
@@ -352,6 +360,29 @@ export function PerfilPage({ onNavigateToPremium }: PerfilPageProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Account Info */}
+      {userEmail && (
+        <Card className="mb-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Conta</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50">
+              <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+              <p className="text-sm break-all">{userEmail}</p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-xl"
+              onClick={handleSignOut}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair da conta
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Actions - Export with PremiumGate */}
       <Card className="border-0 shadow-soft">
