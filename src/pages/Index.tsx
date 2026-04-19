@@ -1,20 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { BottomNav } from '@/components/BottomNav';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { usePremiumStore } from '@/stores/usePremiumStore';
-import { FeedPage } from '@/pages/FeedPage';
-import { PlanilhaPage } from '@/pages/PlanilhaPage';
-import { RelatoriosPage } from '@/pages/RelatoriosPage';
-import { ConfigPage } from '@/pages/ConfigPage';
-import { PerfilPage } from '@/pages/PerfilPage';
-import { PremiumPage } from '@/pages/PremiumPage';
 import { AuthPage } from '@/pages/AuthPage';
-import { CalculadoraPage } from '@/pages/CalculadoraPage';
-import { TutorPage } from '@/pages/TutorPage';
-import { MaisPage } from '@/pages/MaisPage';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+
+const FeedPage = lazy(() => import('@/pages/FeedPage').then(m => ({ default: m.FeedPage })));
+const PlanilhaPage = lazy(() => import('@/pages/PlanilhaPage').then(m => ({ default: m.PlanilhaPage })));
+const RelatoriosPage = lazy(() => import('@/pages/RelatoriosPage').then(m => ({ default: m.RelatoriosPage })));
+const ConfigPage = lazy(() => import('@/pages/ConfigPage').then(m => ({ default: m.ConfigPage })));
+const PerfilPage = lazy(() => import('@/pages/PerfilPage').then(m => ({ default: m.PerfilPage })));
+const PremiumPage = lazy(() => import('@/pages/PremiumPage').then(m => ({ default: m.PremiumPage })));
+const CalculadoraPage = lazy(() => import('@/pages/CalculadoraPage').then(m => ({ default: m.CalculadoraPage })));
+const TutorPage = lazy(() => import('@/pages/TutorPage').then(m => ({ default: m.TutorPage })));
+const MaisPage = lazy(() => import('@/pages/MaisPage').then(m => ({ default: m.MaisPage })));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
@@ -119,7 +126,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background safe-top">
-      {renderPage()}
+      <Suspense fallback={<PageLoader />}>{renderPage()}</Suspense>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
