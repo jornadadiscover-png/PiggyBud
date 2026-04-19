@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { Delete, Eye, EyeOff } from 'lucide-react';
-import piggyLogo from '@/assets/piggy-bud-logo.png';
+import piggyLogo from '@/assets/piggy-bud-logo.webp';
 
 interface PinLockScreenProps {
   mode: 'verify' | 'setup';

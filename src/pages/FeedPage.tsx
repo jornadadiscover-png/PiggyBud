@@ -12,7 +12,7 @@ import { FinancialHealthScore } from '@/components/FinancialHealthScore';
 import { TrendingUp, TrendingDown, Wallet, Plus, ClipboardPaste } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import piggyLogo from '@/assets/piggy-bud-logo.png';
+import piggyLogo from '@/assets/piggy-bud-logo.webp';
 
 export function FeedPage() {
   const [showAdd, setShowAdd] = useState(false);

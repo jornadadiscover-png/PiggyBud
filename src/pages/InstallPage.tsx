@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Share, MoreVertical, Plus, Check, Smartphone } fro
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import piggyLogo from "@/assets/piggy-bud-logo.png";
+import piggyLogo from "@/assets/piggy-bud-logo.webp";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
