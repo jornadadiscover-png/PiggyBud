@@ -149,7 +149,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
               : reportData.categories.map(cat => `
                 <div class="category-bar">
                   <div class="name">
-                    <span>${cat.label}</span>
+                    <span>${escHtml(cat.label)}</span>
                     <span>R$ ${cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${cat.percentage.toFixed(0)}%)</span>
                   </div>
                   <div class="bar"><div class="fill" style="width: ${cat.percentage}%"></div></div>
