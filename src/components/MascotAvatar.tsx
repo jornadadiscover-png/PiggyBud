@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import piggyLogo from '@/assets/piggy-bud-logo.png';
+import piggyLogo from '@/assets/piggy-bud-logo.webp';
 
 type MascotMood = 'happy' | 'normal' | 'worried' | 'scared' | 'dramatic';
 

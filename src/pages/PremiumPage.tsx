@@ -5,7 +5,7 @@ import { usePremiumStore } from '@/stores/usePremiumStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Crown, Check, BarChart3, FileText, Trophy, Upload, Brain, Palette, Loader2, RefreshCw, Settings, LogOut, GraduationCap, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import piggyLogo from '@/assets/piggy-bud-logo.png';
+import piggyLogo from '@/assets/piggy-bud-logo.webp';
 
 const MONTHLY_PRICE_ID = "price_1SxT363XMRup5szXx8FiZXjM";
 const ANNUAL_PRICE_ID = "price_1SyYGd3XMRup5szX9pqKXTKM";

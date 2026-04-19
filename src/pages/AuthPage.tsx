@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable';
 import { ArrowLeft, Mail, Lock, Loader2, Sparkles, Shield, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import piggyLogo from '@/assets/piggy-bud-logo.png';
+import piggyLogo from '@/assets/piggy-bud-logo.webp';
 
 interface AuthPageProps {
   onBack?: () => void;
