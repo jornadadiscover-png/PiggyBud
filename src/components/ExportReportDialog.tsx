@@ -176,7 +176,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
                       <tr>
                         <td>${new Date(t.date).toLocaleDateString('pt-BR')}</td>
                         <td>${escHtml(t.merchant)}</td>
-                        <td>${categoryLabels[t.category] || t.category}</td>
+                        <td>${escHtml(categoryLabels[t.category] || t.category)}</td>
                         <td style="text-align: right;" class="${t.type === 'income' ? 'positive' : 'negative'}">
                           ${t.type === 'income' ? '+' : '-'} R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
