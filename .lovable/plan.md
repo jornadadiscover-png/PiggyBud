@@ -1,40 +1,37 @@
 
+O usuário publicou mas ainda vê a versão antiga. Causa: o `main.tsx` já tem cleanup de service worker, mas só roda **uma vez por sessão** (guard `__sw_cleanup_reloaded__`). Se o SW antigo ainda servir o `index.html` cacheado, o novo `main.tsx` nem chega a rodar.
 
-## Diagnóstico confirmado
+Plano: forçar invalidação agressiva no HTML e no bootstrap.
 
-- O HTML servido por `piggybud.lovable.app` JÁ contém o novo AuthPage (Google, "Criar conta com email", "Já tenho conta"). O publish funcionou.
-- O que está "preso" é o **service worker antigo** instalado no seu navegador/PWA, que serve o build antigo do cache antes de pedir a versão nova.
-- O `PWAUpdatePrompt` que adicionei só ajuda em **futuras** atualizações; não desfaz o SW velho que já está rodando no seu dispositivo agora.
+## Mudanças
 
-## Plano: priorizar "sempre atualizado" (remover SW de cache)
+**1. `index.html`** — adicionar meta tags anti-cache no `<head>`:
+- `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">`
+- `<meta http-equiv="Pragma" content="no-cache">`
+- `<meta http-equiv="Expires" content="0">`
 
-Você escolheu manter o app **sempre atualizado** em vez de offline real. Solução: remover o `vite-plugin-pwa` com Workbox e deixar só um **manifest.json simples** para continuar instalável (Add to Home Screen funciona normalmente, sem cache offline). Além disso, o app passa a **desregistrar automaticamente** qualquer SW antigo no primeiro carregamento — isso conserta o problema atual sem você precisar reinstalar nada.
+E um pequeno script inline **antes** de qualquer outro, que desregistra SW e limpa caches sincronamente antes do bundle carregar:
+```html
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  }
+  if ('caches' in window) {
+    caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+  }
+</script>
+```
 
-### Mudanças
+**2. `src/main.tsx`** — remover o guard `__sw_cleanup_reloaded__` (que impedia segundo reload) e sempre forçar reload se encontrou SW antigo. Também limpar `localStorage` de chaves de versão se existirem (mantendo dados do app intactos — só limpa flags de cache).
 
-| Arquivo | Mudança |
-|---|---|
-| `vite.config.ts` | Remover `VitePWA(...)` e `import { VitePWA }`. Sem service worker em produção. |
-| `src/main.tsx` | Remover o guard de iframe/preview. Em vez disso, **sempre** desregistrar SWs existentes e limpar `caches`. Isso "destrava" todo dispositivo que tem o SW antigo na próxima vez que abrir o site. |
-| `src/components/PWAUpdatePrompt.tsx` | Deletar (não há mais SW para escutar). |
-| `src/App.tsx` | Remover import e uso de `<PWAUpdatePrompt />`. |
-| `src/vite-env.d.ts` | Remover types do `vite-plugin-pwa`. |
-| `index.html` | Garantir `<link rel="manifest" href="/manifest.webmanifest">` e meta tags (`theme-color`, `apple-mobile-web-app-capable`). |
-| `public/manifest.webmanifest` (novo) | Manifest estático com nome, ícones, `display: standalone`, `start_url: /`, theme/background colors atuais. Mantém instalabilidade no Android/iOS. |
-| `package.json` | Remover dependência `vite-plugin-pwa` e `workbox-*`. |
+**3. Bumpar versão visível** — adicionar comentário com timestamp no `index.html` para garantir que o HTML em si tenha hash diferente quando publicado (alguns CDNs cacheiam por conteúdo).
 
-### Resultado para você
+## Resultado
 
-- **No navegador comum**: ao abrir `piggybud.lovable.app` depois do deploy, o `main.tsx` desregistra o SW antigo + limpa caches e força um reload limpo. Você passa a ver a versão atual sempre.
-- **No PWA já instalado**: na próxima abertura, o mesmo script roda dentro do app instalado, desinstala o SW antigo e o app passa a buscar tudo da rede sempre. Não precisa desinstalar.
-- **Instalabilidade**: continua funcionando via `manifest.webmanifest` — botão "Adicionar à tela inicial" continua aparecendo.
-- **Offline**: deixa de funcionar (era o trade-off que você escolheu). Se um dia quiser de volta, dá pra reativar com cuidado.
+Na próxima abertura após publicar:
+1. HTML chega com headers no-cache → browser não usa versão cacheada
+2. Script inline desregistra SW antes do bundle
+3. `main.tsx` faz reload uma vez para garantir assets frescos
+4. Usuário vê a versão nova
 
-### Observação importante
-
-Mesmo com essa mudança, **na primeira vez** que você abrir o site/PWA depois do deploy, o SW antigo ainda vai servir o cache **uma vez** — só no segundo refresh é que a versão nova aparece. Isso é inevitável (é o SW velho que decide o que servir). Depois disso, nunca mais trava.
-
-### Após a aprovação
-
-Implemento as mudanças acima, você clica em **Publish → Update** uma última vez, e em até 2 aberturas o app vai estar 100% atualizado em todos os dispositivos.
-
+Dados do usuário (transações, PIN, settings) ficam preservados — só limpamos service workers e Cache Storage, não localStorage.
