@@ -1,53 +1,40 @@
 
 
-O usuário relata que mudanças aparecem no preview do editor mas NÃO aparecem ao acessar o link publicado ou pelo app PWA instalado.
+## Diagnóstico confirmado
 
-**Diagnóstico:**
+- O HTML servido por `piggybud.lovable.app` JÁ contém o novo AuthPage (Google, "Criar conta com email", "Já tenho conta"). O publish funcionou.
+- O que está "preso" é o **service worker antigo** instalado no seu navegador/PWA, que serve o build antigo do cache antes de pedir a versão nova.
+- O `PWAUpdatePrompt` que adicionei só ajuda em **futuras** atualizações; não desfaz o SW velho que já está rodando no seu dispositivo agora.
 
-Dois problemas distintos, mas relacionados:
+## Plano: priorizar "sempre atualizado" (remover SW de cache)
 
-1. **Link publicado (piggybud.lovable.app) desatualizado:** Frontend só vai pro ar depois de clicar em "Publish → Update". As mudanças recentes (Tutor no BottomNav, nova AuthPage, gate de auth, etc.) ainda estão só no preview.
+Você escolheu manter o app **sempre atualizado** em vez de offline real. Solução: remover o `vite-plugin-pwa` com Workbox e deixar só um **manifest.json simples** para continuar instalável (Add to Home Screen funciona normalmente, sem cache offline). Além disso, o app passa a **desregistrar automaticamente** qualquer SW antigo no primeiro carregamento — isso conserta o problema atual sem você precisar reinstalar nada.
 
-2. **PWA mostrando versão antiga:** O app já foi instalado antes com um service worker que está cacheando a versão antiga. Mesmo depois de republicar, o SW serve o cache até detectar atualização — e às vezes nem assim atualiza sozinho.
-
-Olhando o `vite.config.ts`, a config PWA usa `registerType: 'autoUpdate'` — isso DEVERIA atualizar automaticamente, mas:
-- O `main.tsx` desregistra SW só em preview/iframe (correto)
-- Em produção (piggybud.lovable.app) o SW fica ativo e cacheado
-- O `globPatterns` precachea `js/css/html` — o cache antigo persiste até o novo SW assumir, o que requer fechar TODAS as abas do app
-
-**Solução em duas partes:**
-
-### Parte 1 — Republicar (ação do usuário)
-
-O usuário precisa clicar em **Publish → Update** no canto superior direito do editor para enviar as mudanças ao ar. Sem isso, nada do que foi feito recentemente vai aparecer no `piggybud.lovable.app` nem no PWA.
-
-### Parte 2 — Forçar atualização do PWA (mudança de código)
-
-Adicionar lógica para:
-- Detectar quando há nova versão disponível
-- Mostrar um toast "Nova versão disponível! Atualizar agora" 
-- Ao clicar, chamar `skipWaiting()` + recarregar a página
-
-Isso resolve o problema do PWA "preso" na versão antiga, agora e no futuro.
-
-**Mudanças:**
+### Mudanças
 
 | Arquivo | Mudança |
-|---------|---------|
-| `vite.config.ts` | Trocar `registerType: 'autoUpdate'` por `'prompt'` para controlar o update via UI |
-| `src/main.tsx` | Adicionar listener `useRegisterSW` que mostra toast de atualização quando nova versão chega |
-| (opcional) `src/components/PWAUpdatePrompt.tsx` | Componente novo que escuta o SW e mostra prompt |
+|---|---|
+| `vite.config.ts` | Remover `VitePWA(...)` e `import { VitePWA }`. Sem service worker em produção. |
+| `src/main.tsx` | Remover o guard de iframe/preview. Em vez disso, **sempre** desregistrar SWs existentes e limpar `caches`. Isso "destrava" todo dispositivo que tem o SW antigo na próxima vez que abrir o site. |
+| `src/components/PWAUpdatePrompt.tsx` | Deletar (não há mais SW para escutar). |
+| `src/App.tsx` | Remover import e uso de `<PWAUpdatePrompt />`. |
+| `src/vite-env.d.ts` | Remover types do `vite-plugin-pwa`. |
+| `index.html` | Garantir `<link rel="manifest" href="/manifest.webmanifest">` e meta tags (`theme-color`, `apple-mobile-web-app-capable`). |
+| `public/manifest.webmanifest` (novo) | Manifest estático com nome, ícones, `display: standalone`, `start_url: /`, theme/background colors atuais. Mantém instalabilidade no Android/iOS. |
+| `package.json` | Remover dependência `vite-plugin-pwa` e `workbox-*`. |
 
-**O que vou fazer no modo de implementação:**
+### Resultado para você
 
-1. Configurar `registerType: 'prompt'` no `vite.config.ts`
-2. Criar componente `PWAUpdatePrompt` que usa `useRegisterSW` do `virtual:pwa-register/react` para detectar updates e mostrar um toast Sonner com botão "Atualizar"
-3. Montar esse componente no `App.tsx`
+- **No navegador comum**: ao abrir `piggybud.lovable.app` depois do deploy, o `main.tsx` desregistra o SW antigo + limpa caches e força um reload limpo. Você passa a ver a versão atual sempre.
+- **No PWA já instalado**: na próxima abertura, o mesmo script roda dentro do app instalado, desinstala o SW antigo e o app passa a buscar tudo da rede sempre. Não precisa desinstalar.
+- **Instalabilidade**: continua funcionando via `manifest.webmanifest` — botão "Adicionar à tela inicial" continua aparecendo.
+- **Offline**: deixa de funcionar (era o trade-off que você escolheu). Se um dia quiser de volta, dá pra reativar com cuidado.
 
-**Importante explicar ao usuário:**
+### Observação importante
 
-- Mudanças de **frontend** (UI, telas, navegação) só aparecem no link publicado depois de clicar em **Publish → Update**
-- Mudanças de **backend** (edge functions, banco) já vão automaticamente
-- Para o **PWA já instalado**, depois de republicar o usuário precisa: fechar todas as abas/janelas do app e reabrir — ou aguardar o novo prompt de atualização que vou implementar
-- Em último caso, desinstalar e reinstalar o PWA
+Mesmo com essa mudança, **na primeira vez** que você abrir o site/PWA depois do deploy, o SW antigo ainda vai servir o cache **uma vez** — só no segundo refresh é que a versão nova aparece. Isso é inevitável (é o SW velho que decide o que servir). Depois disso, nunca mais trava.
+
+### Após a aprovação
+
+Implemento as mudanças acima, você clica em **Publish → Update** uma última vez, e em até 2 aberturas o app vai estar 100% atualizado em todos os dispositivos.
 
