@@ -10,10 +10,15 @@
     <script>
       try {
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); });
+          navigator.serviceWorker.getRegistrations().then(function(rs) {
+            rs.forEach(function(r) {
+              try { r.update(); } catch (e) {}
+              try { r.unregister(); } catch (e) {}
+            });
+          });
         }
         if ('caches' in window) {
-          caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); });
+          caches.keys().then(function(ks) { ks.forEach(function(k) { caches.delete(k); }); });
         }
       } catch (e) {}
     </script>
