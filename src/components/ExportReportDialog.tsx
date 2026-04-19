@@ -124,7 +124,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         <body>
           <div class="header">
             <h1>📊 Piggy Bud - Relatório Financeiro</h1>
-            <p>${profile.name ? `${profile.name} • ` : ''}${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</p>
+            <p>${profile.name ? `${escHtml(profile.name)} • ` : ''}${escHtml(monthName.charAt(0).toUpperCase() + monthName.slice(1))}</p>
           </div>
           
           <div class="summary">
