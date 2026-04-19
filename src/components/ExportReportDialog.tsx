@@ -70,6 +70,14 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
     };
   }, [transactions, currentMonth, currentYear]);
 
+  const escHtml = (s: string) =>
+    String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   const handlePrint = () => {
     const printContent = reportRef.current;
     if (!printContent) return;
@@ -116,7 +124,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
         <body>
           <div class="header">
             <h1>📊 Piggy Bud - Relatório Financeiro</h1>
-            <p>${profile.name ? `${profile.name} • ` : ''}${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</p>
+            <p>${profile.name ? `${escHtml(profile.name)} • ` : ''}${escHtml(monthName.charAt(0).toUpperCase() + monthName.slice(1))}</p>
           </div>
           
           <div class="summary">
@@ -141,7 +149,7 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
               : reportData.categories.map(cat => `
                 <div class="category-bar">
                   <div class="name">
-                    <span>${cat.label}</span>
+                    <span>${escHtml(cat.label)}</span>
                     <span>R$ ${cat.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${cat.percentage.toFixed(0)}%)</span>
                   </div>
                   <div class="bar"><div class="fill" style="width: ${cat.percentage}%"></div></div>
@@ -167,8 +175,8 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
                     ${reportData.transactions.map(t => `
                       <tr>
                         <td>${new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                        <td>${t.merchant}</td>
-                        <td>${categoryLabels[t.category] || t.category}</td>
+                        <td>${escHtml(t.merchant)}</td>
+                        <td>${escHtml(categoryLabels[t.category] || t.category)}</td>
                         <td style="text-align: right;" class="${t.type === 'income' ? 'positive' : 'negative'}">
                           ${t.type === 'income' ? '+' : '-'} R$ ${t.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>

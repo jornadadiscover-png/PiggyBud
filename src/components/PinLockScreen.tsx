@@ -37,9 +37,9 @@ export function PinLockScreen({ mode, onSuccess }: PinLockScreenProps) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (mode === 'verify') {
-      if (verifyPin(pin)) {
+      if (await verifyPin(pin)) {
         onSuccess();
       } else {
         setError('PIN incorreto! Tente novamente.');
@@ -54,7 +54,7 @@ export function PinLockScreen({ mode, onSuccess }: PinLockScreenProps) {
         setStep('confirm');
       } else {
         if (pin === confirmPin) {
-          savePin(pin);
+          await savePin(pin);
           onSuccess();
         } else {
           setError('Os PINs não coincidem. Tente novamente.');

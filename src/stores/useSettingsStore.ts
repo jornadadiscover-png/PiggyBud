@@ -10,8 +10,8 @@ interface SettingsStore {
   pinUserId: string | null; // Which user this PIN belongs to
   updateSettings: (updates: Partial<AppSettings>) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
-  setPin: (pin: string, userId?: string | null) => void;
-  verifyPin: (pin: string) => boolean;
+  setPin: (pin: string, userId?: string | null) => Promise<void>;
+  verifyPin: (pin: string) => Promise<boolean>;
   lock: () => void;
   unlock: () => void;
   resetPin: () => void;
@@ -36,6 +36,17 @@ const defaultProfile: UserProfile = {
   avatarUrl: undefined,
 };
 
+// Hash PIN with SHA-256 so plaintext is never persisted to localStorage.
+async function hashPin(pin: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// A stored value is treated as a hash if it's a 64-char hex string.
+const isHash = (v: string | undefined) => !!v && /^[a-f0-9]{64}$/i.test(v);
+
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
@@ -57,18 +68,31 @@ export const useSettingsStore = create<SettingsStore>()(
         }));
       },
 
-      setPin: (pin, userId = null) => {
+      setPin: async (pin, userId = null) => {
+        const hashed = await hashPin(pin);
         set((state) => ({
-          settings: { ...state.settings, pin, pinEnabled: true },
+          settings: { ...state.settings, pin: hashed, pinEnabled: true },
           hasSetupPin: true,
           isLocked: false,
           pinUserId: userId ?? state.pinUserId,
         }));
       },
 
-      verifyPin: (pin) => {
+      verifyPin: async (pin) => {
         const { settings } = get();
-        return settings.pin === pin;
+        if (!settings.pin) return false;
+        const entered = await hashPin(pin);
+        if (isHash(settings.pin)) {
+          return settings.pin === entered;
+        }
+        // Legacy plaintext PIN: compare then upgrade to hashed storage.
+        if (settings.pin === pin) {
+          set((state) => ({
+            settings: { ...state.settings, pin: entered },
+          }));
+          return true;
+        }
+        return false;
       },
 
       lock: () => {
