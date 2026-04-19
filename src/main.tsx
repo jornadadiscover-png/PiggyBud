@@ -17,11 +17,14 @@ import "./index.css";
         await Promise.all(keys.map((k) => caches.delete(k)));
       }
 
-      // If we just removed an old SW, force a reload so the user gets fresh assets.
+      // If we just removed an old SW, force a reload (once per page load) so the user gets fresh assets.
       if (hadSW) {
         const reloadedKey = "__sw_cleanup_reloaded__";
-        if (!sessionStorage.getItem(reloadedKey)) {
-          sessionStorage.setItem(reloadedKey, "1");
+        const last = sessionStorage.getItem(reloadedKey);
+        const now = Date.now();
+        // Allow reload again after 10s to recover from repeatedly stale caches across sessions.
+        if (!last || now - Number(last) > 10000) {
+          sessionStorage.setItem(reloadedKey, String(now));
           window.location.reload();
           return;
         }
