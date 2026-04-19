@@ -70,6 +70,14 @@ export function ExportReportDialog({ trigger }: ExportReportDialogProps) {
     };
   }, [transactions, currentMonth, currentYear]);
 
+  const escHtml = (s: string) =>
+    String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   const handlePrint = () => {
     const printContent = reportRef.current;
     if (!printContent) return;
