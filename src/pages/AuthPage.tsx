@@ -81,7 +81,7 @@ export function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
       <div className="flex flex-col min-h-screen p-6 safe-top safe-bottom">
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <div className="w-32 h-32 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-glow p-1">
-            <img src={piggyLogo} alt="Piggy Bud" className="w-full h-full rounded-3xl object-cover" />
+            <img src={piggyLogo} alt="Piggy Bud" width={120} height={120} fetchPriority="high" decoding="async" className="w-full h-full rounded-3xl object-cover" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Piggy Bud</h1>
           <p className="text-muted-foreground mb-8 max-w-xs">
