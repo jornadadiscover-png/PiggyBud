@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Bell, Sliders, Lock, Palette } from 'lucide-react';
+import { Bell, Sliders, Lock, Palette, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { PremiumGate } from '@/components/PremiumGate';
@@ -195,6 +195,30 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Force update */}
+      <Card className="mt-4 border-0 shadow-soft">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base">Atualização do app</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            Não está vendo as funções mais recentes? Force a limpeza do cache.
+          </p>
+          <Button
+            variant="outline"
+            className="w-full rounded-xl"
+            onClick={() => {
+              window.location.href = '/reset';
+            }}
+          >
+            Forçar atualização agora
+          </Button>
         </CardContent>
       </Card>
     </div>
