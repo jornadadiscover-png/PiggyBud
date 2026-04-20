@@ -1,59 +1,53 @@
 
-Objetivo: corrigir o problema de versão antiga aparecendo mesmo após publicar, atacando a causa mais provável: o app está entrando por um shell/entrypoint antigo, não apenas por cache de assets.
 
-Diagnóstico do código atual:
-- Já existe limpeza agressiva de Service Worker e Cache Storage em `index.html`, `src/main.tsx`, `public/sw.js` e `public/service-worker.js`.
-- Não há `vite-plugin-pwa` ativo no build atual.
-- O problema restante provavelmente está em um destes pontos:
-  1. `index.html`/manifest ainda chegando velho para alguns usuários.
-  2. App instalado usando manifest/home screen com entrypoint antigo.
-  3. Build nativo via Capacitor apontando para outra URL: `capacitor.config.json` usa `https://f599e806-d657-46b5-8a95-510da50de4fe.lovableproject.com`, não a URL publicada.
+## Diagnóstico real
 
-Plano revisado:
-1. Implementar um “build handshake” real no bootstrap
-- Criar um identificador de build/versionamento explícito.
-- Fazer o `index.html` checar esse build ID antes de iniciar o app.
-- Se o build mudou: limpar SW/caches, gravar o novo build ID e forçar hard reload único.
-- Isso resolve melhor do que depender só de `unregister()` depois que o bundle já carregou.
+Confirmei direto no servidor de produção (`https://piggybud.lovable.app`):
 
-2. Versionar também os recursos de entrada
-- Colocar versionamento explícito no `manifest.webmanifest` e nos links de manifest/icons.
-- Ajustar `start_url` para carregar com marcador de versão quando apropriado.
-- Isso ajuda principalmente instalações via “Adicionar à tela inicial”.
+1. **O código publicado JÁ está correto e atualizado.**
+   - O bundle principal (`assets/index-BHUlJdvT.js`) contém `Tutor`, `Calculadora`, `GraduationCap` (ícone do Tutor) e a BottomNav nova.
+   - O HTML servido tem o `BUILD_ID 2026-04-20T00-00-00Z-001`, headers `cache-control: no-cache`, e o script de handshake.
+   - Os "kill-switch" service workers (`/sw.js` e `/service-worker.js`) estão deployados e respondem 200.
 
-3. Corrigir o alvo do app nativo/webview
-- Atualizar `capacitor.config.json` para usar a URL publicada correta, se a intenção é que builds móveis carreguem a versão live.
-- Hoje um app Capacitor pode estar abrindo outra origem e por isso nunca refletir a publicação esperada.
+2. **O problema é exclusivamente no DISPOSITIVO do usuário.** Há um Service Worker antigo (de uma versão PWA anterior, `vite-plugin-pwa`) que está interceptando as requisições e servindo o `index.html` antigo do cache. Como esse HTML antigo não tem o script de handshake, ele nunca dispara o reload — chicken-and-egg.
 
-4. Ajustar a comunicação/UX de instalação sem mudar visual
-- Manter a experiência atual, mas remover qualquer dependência implícita de offline real.
-- O app hoje promete comportamento de app instalado, mas sem PWA real ativa; isso precisa ficar consistente para não continuar gerando versões “presas”.
+3. **PIN inicial e dados de bancos antigos** = isso vive no `localStorage` do dispositivo, não no código. Precisa de uma ação manual de reset dentro do app ou no navegador.
 
-5. Adicionar diagnóstico leve para confirmar a correção
-- Expor o build ID no console e/ou em um ponto discreto de debug.
-- Assim dá para validar rapidamente se o usuário está vendo a build nova ou uma shell antiga.
+Reverter não resolveria — o código já está bom. O que falta é uma forma de **furar** o SW velho preso no aparelho.
 
-Resultado esperado:
-- Navegador web passa a buscar a versão correta ao detectar build nova.
-- App instalado via home screen deixa de reaproveitar entrypoint antigo.
-- Se o problema estiver no mobile wrapper, ele passa a apontar para a URL certa.
-- As funções novas finalmente aparecem sem alterar layout nem fluxo principal.
+## Plano de correção
 
-Detalhes técnicos:
-```text
-Usuário abre app
-  -> bootstrap lê build ID atual
-  -> compara com último build salvo
-  -> se mudou:
-       limpar SW + caches
-       salvar novo build
-       hard reload 1x
-  -> iniciar React
-```
+### 1. Rota de "escape" sem cache — `/reset`
+Criar página nova `src/pages/ResetPage.tsx` em rota `/reset` que:
+- Roda imediatamente no mount: `unregister()` em todos SWs, `caches.delete()` em tudo, opção de limpar `localStorage` (com aviso: apaga PIN, dados de bancos antigos).
+- Mostra status visual ("Limpando…" → "Pronto, abrindo app novo").
+- Após limpar, redireciona para `/?_v=<timestamp>` para garantir HTML novo.
+- Como é rota nova que o SW antigo nunca cacheou, ele tende a deixar passar — e mesmo se interceptar, o `?_v=` garante miss.
 
-Arquivos que eu revisaria na implementação:
-- `index.html`
-- `src/main.tsx`
-- `public/manifest.webmanifest`
-- `src/pages/InstallPage.tsx`
-- `capacitor.config.json`
+Wireear em `App.tsx` adicionando `<Route path="/reset" element={<ResetPage />} />`.
+
+### 2. Bumpar `BUILD_ID`
+Atualizar `BUILD_ID` em `index.html`, `main.tsx` e `manifest.webmanifest` para `2026-04-20T02-30-00Z-002` para que dispositivos que JÁ conseguem carregar o HTML novo disparem o handshake mais uma vez.
+
+### 3. Botão "Forçar atualização" dentro do app
+Em `src/pages/ConfigPage.tsx` (ou `MaisPage.tsx`), adicionar um botão "Forçar atualização agora" que executa o mesmo cleanup e recarrega. Útil para usuários que conseguem abrir o app mas suspeitam de versão antiga.
+
+### 4. Comunicar a solução ao usuário
+Após publicar, o usuário precisa, **uma vez**, em cada dispositivo afetado (web e PWA instalado):
+- Abrir `https://piggybud.lovable.app/reset` no navegador.
+- A partir daí, todas as próximas aberturas mostrarão a versão correta com Calculadora, Tutor, etc.
+- Se o PIN antigo / dados de bancos antigos estiverem incomodando, marcar a opção "Limpar dados locais" na tela de reset.
+
+### 5. NÃO mexer em
+- Lógica de SW já existente (`public/sw.js`, `public/service-worker.js`) — está correta.
+- `capacitor.config.json` — já aponta para a URL publicada.
+- Estrutura de rotas/features — está tudo certo.
+
+## Arquivos afetados
+- `src/pages/ResetPage.tsx` (novo)
+- `src/App.tsx` (adicionar rota)
+- `src/pages/ConfigPage.tsx` (botão forçar atualização)
+- `index.html` (bump BUILD_ID)
+- `src/main.tsx` (bump BUILD_ID)
+- `public/manifest.webmanifest` (bump versão)
+
