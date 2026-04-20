@@ -3,7 +3,7 @@ import { migrateLocalStorage } from "./lib/data-migration";
 import App from "./App.tsx";
 import "./index.css";
 
-const BUILD_ID = "2026-04-20T00-00-00Z-001";
+const BUILD_ID = "2026-04-20T02-30-00Z-002";
 
 // Expose build id for quick diagnostics
 try {

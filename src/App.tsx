@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import InstallPage from "./pages/InstallPage";
+import ResetPage from "./pages/ResetPage";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/install" element={<InstallPage />} />
+          <Route path="/reset" element={<ResetPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
