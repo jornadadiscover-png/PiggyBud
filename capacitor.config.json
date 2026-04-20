@@ -3,7 +3,7 @@
   "appName": "Piggy Bud",
   "webDir": "dist",
   "server": {
-    "url": "https://f599e806-d657-46b5-8a95-510da50de4fe.lovableproject.com?forceHideBadge=true",
+    "url": "https://piggybud.lovable.app",
     "cleartext": true
   }
 }

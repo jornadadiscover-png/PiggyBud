@@ -168,8 +168,8 @@ const InstallPage = () => {
             <span className="text-sm">Tela cheia sem barra do navegador</span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-card/50 rounded-lg">
-            <span className="text-xl">📶</span>
-            <span className="text-sm">Funciona offline</span>
+            <span className="text-xl">🔄</span>
+            <span className="text-sm">Sempre atualizado com a versão mais recente</span>
           </div>
         </div>
       </div>
