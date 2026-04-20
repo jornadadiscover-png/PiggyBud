@@ -1,37 +1,59 @@
 
-O usuário publicou mas ainda vê a versão antiga. Causa: o `main.tsx` já tem cleanup de service worker, mas só roda **uma vez por sessão** (guard `__sw_cleanup_reloaded__`). Se o SW antigo ainda servir o `index.html` cacheado, o novo `main.tsx` nem chega a rodar.
+Objetivo: corrigir o problema de versão antiga aparecendo mesmo após publicar, atacando a causa mais provável: o app está entrando por um shell/entrypoint antigo, não apenas por cache de assets.
 
-Plano: forçar invalidação agressiva no HTML e no bootstrap.
+Diagnóstico do código atual:
+- Já existe limpeza agressiva de Service Worker e Cache Storage em `index.html`, `src/main.tsx`, `public/sw.js` e `public/service-worker.js`.
+- Não há `vite-plugin-pwa` ativo no build atual.
+- O problema restante provavelmente está em um destes pontos:
+  1. `index.html`/manifest ainda chegando velho para alguns usuários.
+  2. App instalado usando manifest/home screen com entrypoint antigo.
+  3. Build nativo via Capacitor apontando para outra URL: `capacitor.config.json` usa `https://f599e806-d657-46b5-8a95-510da50de4fe.lovableproject.com`, não a URL publicada.
 
-## Mudanças
+Plano revisado:
+1. Implementar um “build handshake” real no bootstrap
+- Criar um identificador de build/versionamento explícito.
+- Fazer o `index.html` checar esse build ID antes de iniciar o app.
+- Se o build mudou: limpar SW/caches, gravar o novo build ID e forçar hard reload único.
+- Isso resolve melhor do que depender só de `unregister()` depois que o bundle já carregou.
 
-**1. `index.html`** — adicionar meta tags anti-cache no `<head>`:
-- `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">`
-- `<meta http-equiv="Pragma" content="no-cache">`
-- `<meta http-equiv="Expires" content="0">`
+2. Versionar também os recursos de entrada
+- Colocar versionamento explícito no `manifest.webmanifest` e nos links de manifest/icons.
+- Ajustar `start_url` para carregar com marcador de versão quando apropriado.
+- Isso ajuda principalmente instalações via “Adicionar à tela inicial”.
 
-E um pequeno script inline **antes** de qualquer outro, que desregistra SW e limpa caches sincronamente antes do bundle carregar:
-```html
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
-  }
-  if ('caches' in window) {
-    caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
-  }
-</script>
+3. Corrigir o alvo do app nativo/webview
+- Atualizar `capacitor.config.json` para usar a URL publicada correta, se a intenção é que builds móveis carreguem a versão live.
+- Hoje um app Capacitor pode estar abrindo outra origem e por isso nunca refletir a publicação esperada.
+
+4. Ajustar a comunicação/UX de instalação sem mudar visual
+- Manter a experiência atual, mas remover qualquer dependência implícita de offline real.
+- O app hoje promete comportamento de app instalado, mas sem PWA real ativa; isso precisa ficar consistente para não continuar gerando versões “presas”.
+
+5. Adicionar diagnóstico leve para confirmar a correção
+- Expor o build ID no console e/ou em um ponto discreto de debug.
+- Assim dá para validar rapidamente se o usuário está vendo a build nova ou uma shell antiga.
+
+Resultado esperado:
+- Navegador web passa a buscar a versão correta ao detectar build nova.
+- App instalado via home screen deixa de reaproveitar entrypoint antigo.
+- Se o problema estiver no mobile wrapper, ele passa a apontar para a URL certa.
+- As funções novas finalmente aparecem sem alterar layout nem fluxo principal.
+
+Detalhes técnicos:
+```text
+Usuário abre app
+  -> bootstrap lê build ID atual
+  -> compara com último build salvo
+  -> se mudou:
+       limpar SW + caches
+       salvar novo build
+       hard reload 1x
+  -> iniciar React
 ```
 
-**2. `src/main.tsx`** — remover o guard `__sw_cleanup_reloaded__` (que impedia segundo reload) e sempre forçar reload se encontrou SW antigo. Também limpar `localStorage` de chaves de versão se existirem (mantendo dados do app intactos — só limpa flags de cache).
-
-**3. Bumpar versão visível** — adicionar comentário com timestamp no `index.html` para garantir que o HTML em si tenha hash diferente quando publicado (alguns CDNs cacheiam por conteúdo).
-
-## Resultado
-
-Na próxima abertura após publicar:
-1. HTML chega com headers no-cache → browser não usa versão cacheada
-2. Script inline desregistra SW antes do bundle
-3. `main.tsx` faz reload uma vez para garantir assets frescos
-4. Usuário vê a versão nova
-
-Dados do usuário (transações, PIN, settings) ficam preservados — só limpamos service workers e Cache Storage, não localStorage.
+Arquivos que eu revisaria na implementação:
+- `index.html`
+- `src/main.tsx`
+- `public/manifest.webmanifest`
+- `src/pages/InstallPage.tsx`
+- `capacitor.config.json`
