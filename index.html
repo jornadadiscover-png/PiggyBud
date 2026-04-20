@@ -5,22 +5,50 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <!-- build: 2026-04-19T00:00:00Z -->
+    <meta name="build-id" content="2026-04-20T00-00-00Z-001" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
     <script>
-      try {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(rs) {
-            rs.forEach(function(r) {
-              try { r.update(); } catch (e) {}
-              try { r.unregister(); } catch (e) {}
-            });
-          });
-        }
-        if ('caches' in window) {
-          caches.keys().then(function(ks) { ks.forEach(function(k) { caches.delete(k); }); });
-        }
-      } catch (e) {}
+      (function() {
+        try {
+          var BUILD_ID = '2026-04-20T00-00-00Z-001';
+          var STORAGE_KEY = '__pb_build_id__';
+          var RELOAD_GUARD = '__pb_build_reloaded__';
+          var prev = null;
+          try { prev = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+
+          // Always try to remove any legacy SW/cache.
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(rs) {
+              rs.forEach(function(r) {
+                try { r.update(); } catch (e) {}
+                try { r.unregister(); } catch (e) {}
+              });
+            }).catch(function(){});
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(ks) {
+              ks.forEach(function(k) { try { caches.delete(k); } catch(e){} });
+            }).catch(function(){});
+          }
+
+          // Build handshake: if build changed, force exactly one hard reload.
+          if (prev !== BUILD_ID) {
+            try { localStorage.setItem(STORAGE_KEY, BUILD_ID); } catch (e) {}
+            var alreadyReloaded = false;
+            try { alreadyReloaded = sessionStorage.getItem(RELOAD_GUARD) === BUILD_ID; } catch (e) {}
+            if (prev !== null && !alreadyReloaded) {
+              try { sessionStorage.setItem(RELOAD_GUARD, BUILD_ID); } catch (e) {}
+              try { console.info('[PiggyBud] New build detected:', prev, '->', BUILD_ID, '— forcing reload'); } catch(e){}
+              // Bust any HTTP cache by appending a cache-buster.
+              var url = new URL(window.location.href);
+              url.searchParams.set('_v', BUILD_ID);
+              window.location.replace(url.toString());
+              return;
+            }
+          }
+          try { console.info('[PiggyBud] build:', BUILD_ID); } catch(e){}
+        } catch (e) {}
+      })();
     </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -45,11 +73,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png" />
+    <link rel="manifest" href="/manifest.webmanifest?v=2026-04-20-001" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2026-04-20-001" />
+    <link rel="icon" type="image/png" href="/favicon.png?v=2026-04-20-001" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png?v=2026-04-20-001" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/pwa-512x512.png?v=2026-04-20-001" />
   </head>
 
   <body>
