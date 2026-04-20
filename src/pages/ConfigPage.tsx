@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Bell, Sliders, Lock, Palette } from 'lucide-react';
+import { Bell, Sliders, Lock, Palette, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { PremiumGate } from '@/components/PremiumGate';
