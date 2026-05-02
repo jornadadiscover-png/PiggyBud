@@ -1,9 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { migrateLocalStorage } from "./lib/data-migration";
+import { initReminders } from "./lib/reminders";
+import { useSettingsStore } from "./stores/useSettingsStore";
 import App from "./App.tsx";
 import "./index.css";
 
-const BUILD_ID = "2026-04-20T02-30-00Z-002";
+const BUILD_ID = "2026-05-02T00-00-00Z-003";
 
 // Expose build id for quick diagnostics
 try {
@@ -32,5 +34,24 @@ try {
 
 // Migrate data from FinFunny to Piggy Bud before rendering
 migrateLocalStorage();
+
+// Apply persisted theme as early as possible to avoid flash.
+try {
+  const theme = useSettingsStore.getState().settings.theme || "default";
+  document.documentElement.dataset.theme = theme;
+} catch {
+  // ignore
+}
+
+// Subscribe so theme updates from anywhere apply instantly.
+useSettingsStore.subscribe((state) => {
+  const theme = state.settings.theme || "default";
+  if (document.documentElement.dataset.theme !== theme) {
+    document.documentElement.dataset.theme = theme;
+  }
+});
+
+// Schedule local reminders (daily + weekly summary).
+initReminders();
 
 createRoot(document.getElementById("root")!).render(<App />);
