@@ -46,10 +46,10 @@ export const usePremiumStore = create<PremiumStore>()(
         });
       },
 
-      canAccess: (feature: PremiumFeature) => {
-        const { isPremium, expiresAt } = get();
-        if (!isPremium) return false;
-        if (expiresAt && new Date(expiresAt) < new Date()) return false;
+      canAccess: (_feature: PremiumFeature) => {
+        // All features are currently free. Monetization is paused while we
+        // decide what would justify a subscription. Stripe code remains in
+        // place so we can re-enable gating later by reverting this method.
         return true;
       },
 
