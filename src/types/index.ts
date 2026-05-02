@@ -112,6 +112,8 @@ export interface UserProfile {
 }
 
 // Settings Types
+export type ThemeId = 'default' | 'dark' | 'ocean' | 'sunset';
+
 export interface AppSettings {
   reminderTime: string;
   reactionSensitivity: 'low' | 'medium' | 'high';
@@ -119,6 +121,7 @@ export interface AppSettings {
   weeklyReportEnabled: boolean;
   pinEnabled: boolean;
   pin?: string;
+  theme: ThemeId;
   // Category budgets
   categoryBudgets: CategoryBudget[];
 }

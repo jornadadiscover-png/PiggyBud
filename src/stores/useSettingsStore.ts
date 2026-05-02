@@ -25,6 +25,7 @@ const defaultSettings: AppSettings = {
   weeklyReportEnabled: true,
   pinEnabled: false,
   pin: undefined,
+  theme: 'default',
   categoryBudgets: [],
 };
 
