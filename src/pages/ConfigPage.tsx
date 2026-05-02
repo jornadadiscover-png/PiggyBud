@@ -175,42 +175,37 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
         </CardContent>
       </Card>
 
-      {/* Premium Themes Section */}
-      <PremiumGate feature="premium-themes" onUpgrade={onNavigateToPremium}>
-        <Card className="mb-4 border-0 shadow-soft">
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-primary" />
-              <CardTitle className="text-base">Temas</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              {themes.map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => {
-                    setSelectedTheme(theme.id);
-                    toast({ title: `Tema "${theme.name}" aplicado!` });
-                  }}
-                  className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                    selectedTheme === theme.id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <div className="flex gap-1">
-                    {theme.colors.map((color, i) => (
-                      <div key={i} className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
-                    ))}
-                  </div>
-                  <span className="text-sm font-medium">{theme.name}</span>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </PremiumGate>
+      {/* Themes Section */}
+      <Card className="mb-4 border-0 shadow-soft">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Palette className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base">Temas</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {themes.map((theme) => (
+              <button
+                key={theme.id}
+                onClick={() => handleThemeChange(theme.id, theme.name)}
+                className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                  settings.theme === theme.id
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex gap-1">
+                  {theme.colors.map((color, i) => (
+                    <div key={i} className="w-4 h-4 rounded-full" style={{ backgroundColor: color }} />
+                  ))}
+                </div>
+                <span className="text-sm font-medium">{theme.name}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Security Section */}
       <Card className="border-0 shadow-soft">
