@@ -17,17 +17,16 @@ interface ConfigPageProps {
   onNavigateToPremium?: () => void;
 }
 
-const themes = [
-  { id: 'default', name: 'Padrão', colors: ['hsl(142 70% 45%)', 'hsl(270 60% 55%)'] },
-  { id: 'dark', name: 'Escuro', colors: ['hsl(220 20% 20%)', 'hsl(220 15% 30%)'] },
-  { id: 'ocean', name: 'Oceano', colors: ['hsl(200 80% 50%)', 'hsl(210 70% 40%)'] },
+const themes: { id: ThemeId; name: string; colors: [string, string] }[] = [
+  { id: 'default', name: 'Padrão', colors: ['hsl(270 70% 50%)', 'hsl(320 80% 55%)'] },
+  { id: 'dark', name: 'Escuro', colors: ['hsl(270 30% 12%)', 'hsl(270 70% 60%)'] },
+  { id: 'ocean', name: 'Oceano', colors: ['hsl(200 80% 45%)', 'hsl(175 75% 40%)'] },
   { id: 'sunset', name: 'Pôr do Sol', colors: ['hsl(25 90% 55%)', 'hsl(350 80% 55%)'] },
 ];
 
-export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
+export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: ConfigPageProps) {
   const { settings, updateSettings, resetPin } = useSettingsStore();
   const [showPinSetup, setShowPinSetup] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState('default');
   const { toast } = useToast();
 
   const handlePinSetupSuccess = () => {
@@ -44,6 +43,49 @@ export function ConfigPage({ onNavigateToPremium }: ConfigPageProps) {
       title: 'PIN removido',
       description: 'A proteção por PIN foi desativada.',
     });
+  };
+
+  const handleToggleDaily = async (checked: boolean) => {
+    if (checked) {
+      const ok = await requestNotificationPermission();
+      if (!ok) {
+        toast({
+          title: 'Permissão necessária',
+          description: 'Permita notificações no navegador para receber lembretes.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+    updateSettings({ dailyReminderEnabled: checked });
+    await applyReminderSettings();
+  };
+
+  const handleToggleWeekly = async (checked: boolean) => {
+    if (checked) {
+      const ok = await requestNotificationPermission();
+      if (!ok) {
+        toast({
+          title: 'Permissão necessária',
+          description: 'Permita notificações no navegador para receber o resumo semanal.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+    updateSettings({ weeklyReportEnabled: checked });
+    await applyReminderSettings();
+  };
+
+  const handleReminderTimeChange = async (time: string) => {
+    updateSettings({ reminderTime: time });
+    await applyReminderSettings();
+  };
+
+  const handleThemeChange = (id: ThemeId, name: string) => {
+    updateSettings({ theme: id });
+    document.documentElement.dataset.theme = id;
+    toast({ title: `Tema "${name}" aplicado!` });
   };
 
   if (showPinSetup) {
