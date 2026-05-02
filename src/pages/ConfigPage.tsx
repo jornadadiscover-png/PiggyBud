@@ -9,7 +9,8 @@ import { useSettingsStore } from '@/stores/useSettingsStore';
 import { Bell, Sliders, Lock, Palette, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
-import { PremiumGate } from '@/components/PremiumGate';
+import { applyReminderSettings, requestNotificationPermission } from '@/lib/reminders';
+import type { ThemeId } from '@/types';
 
 
 interface ConfigPageProps {
