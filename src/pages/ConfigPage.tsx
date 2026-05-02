@@ -118,7 +118,7 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
             </div>
             <Switch
               checked={settings.dailyReminderEnabled}
-              onCheckedChange={(checked) => updateSettings({ dailyReminderEnabled: checked })}
+              onCheckedChange={handleToggleDaily}
             />
           </div>
 
@@ -128,7 +128,7 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
               <Input
                 type="time"
                 value={settings.reminderTime}
-                onChange={(e) => updateSettings({ reminderTime: e.target.value })}
+                onChange={(e) => handleReminderTimeChange(e.target.value)}
                 className="w-28 rounded-xl"
               />
             </div>
@@ -143,7 +143,7 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
             </div>
             <Switch
               checked={settings.weeklyReportEnabled}
-              onCheckedChange={(checked) => updateSettings({ weeklyReportEnabled: checked })}
+              onCheckedChange={handleToggleWeekly}
             />
           </div>
         </CardContent>
