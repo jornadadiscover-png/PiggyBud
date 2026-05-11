@@ -2,3 +2,18 @@ project_id = "stflqqbkkvyvuewagpuh"
 
 [functions.generate-daily-tutor]
 verify_jwt = false
+
+[functions.telegram-webhook]
+verify_jwt = false
+
+[functions.telegram-create-link]
+verify_jwt = false
+
+[functions.telegram-check-link]
+verify_jwt = false
+
+[functions.telegram-update-prefs]
+verify_jwt = false
+
+[functions.telegram-send-reminders]
+verify_jwt = false

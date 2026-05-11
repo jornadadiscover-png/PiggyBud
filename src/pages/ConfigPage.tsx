@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,10 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Bell, Sliders, Lock, Palette, RefreshCw } from 'lucide-react';
+import { Bell, Sliders, Lock, Palette, RefreshCw, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { applyReminderSettings, requestNotificationPermission } from '@/lib/reminders';
+import {
+  checkTelegramLink,
+  createTelegramLink,
+  updateTelegramPrefs,
+  disconnectTelegram,
+  type TelegramLinkStatus,
+} from '@/lib/telegram-link';
 import type { ThemeId } from '@/types';
 
 
@@ -29,6 +36,79 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
   const [showPinSetup, setShowPinSetup] = useState(false);
   const { toast } = useToast();
 
+  // Telegram state
+  const [tgStatus, setTgStatus] = useState<TelegramLinkStatus | null>(null);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgConnecting, setTgConnecting] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    checkTelegramLink().then(setTgStatus).catch(() => {});
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  const startPolling = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    let attempts = 0;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      const s = await checkTelegramLink().catch(() => null);
+      if (s?.connected) {
+        setTgStatus(s);
+        setTgConnecting(false);
+        if (pollRef.current) clearInterval(pollRef.current);
+        toast({ title: '✅ Telegram conectado!', description: 'Você receberá lembretes por lá.' });
+      } else if (attempts > 60) {
+        setTgConnecting(false);
+        if (pollRef.current) clearInterval(pollRef.current);
+      }
+    }, 3000);
+  };
+
+  const handleConnectTelegram = async () => {
+    setTgLoading(true);
+    try {
+      const res = await createTelegramLink(settings.reminderTime);
+      if (res.already_connected) {
+        const s = await checkTelegramLink();
+        setTgStatus(s);
+        toast({ title: 'Já conectado', description: 'Seu Telegram já está vinculado.' });
+        return;
+      }
+      window.open(res.url, '_blank');
+      setTgConnecting(true);
+      startPolling();
+    } catch (e) {
+      toast({ title: 'Erro ao conectar', description: String(e), variant: 'destructive' });
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  const handleDisconnectTelegram = async () => {
+    setTgLoading(true);
+    try {
+      await disconnectTelegram();
+      setTgStatus({ connected: false, link: null });
+      toast({ title: 'Telegram desconectado' });
+    } catch (e) {
+      toast({ title: 'Erro', description: String(e), variant: 'destructive' });
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  const syncTelegramPrefs = async (prefs: { daily_enabled?: boolean; weekly_enabled?: boolean; reminder_time?: string }) => {
+    if (!tgStatus?.connected) return;
+    try {
+      await updateTelegramPrefs(prefs);
+    } catch {
+      // silent
+    }
+  };
+
   const handlePinSetupSuccess = () => {
     setShowPinSetup(false);
     toast({
@@ -46,12 +126,12 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
   };
 
   const handleToggleDaily = async (checked: boolean) => {
-    if (checked) {
+    if (checked && !tgStatus?.connected) {
       const ok = await requestNotificationPermission();
       if (!ok) {
         toast({
           title: 'Permissão necessária',
-          description: 'Permita notificações no navegador para receber lembretes.',
+          description: 'Permita notificações ou conecte o Telegram para receber lembretes.',
           variant: 'destructive',
         });
         return;
@@ -59,15 +139,16 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
     }
     updateSettings({ dailyReminderEnabled: checked });
     await applyReminderSettings();
+    await syncTelegramPrefs({ daily_enabled: checked });
   };
 
   const handleToggleWeekly = async (checked: boolean) => {
-    if (checked) {
+    if (checked && !tgStatus?.connected) {
       const ok = await requestNotificationPermission();
       if (!ok) {
         toast({
           title: 'Permissão necessária',
-          description: 'Permita notificações no navegador para receber o resumo semanal.',
+          description: 'Permita notificações ou conecte o Telegram para receber o resumo semanal.',
           variant: 'destructive',
         });
         return;
@@ -75,11 +156,13 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
     }
     updateSettings({ weeklyReportEnabled: checked });
     await applyReminderSettings();
+    await syncTelegramPrefs({ weekly_enabled: checked });
   };
 
   const handleReminderTimeChange = async (time: string) => {
     updateSettings({ reminderTime: time });
     await applyReminderSettings();
+    await syncTelegramPrefs({ reminder_time: time });
   };
 
   const handleThemeChange = (id: ThemeId, name: string) => {
@@ -146,6 +229,50 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
               onCheckedChange={handleToggleWeekly}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Telegram Section */}
+      <Card className="mb-4 border-0 shadow-soft">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base">Telegram</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground break-words">
+            Receba lembretes diretamente no Telegram, sem depender de notificações push do navegador.
+          </p>
+          {tgStatus?.connected ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span>Conectado</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnectTelegram}
+                disabled={tgLoading}
+              >
+                Desconectar
+              </Button>
+            </div>
+          ) : tgConnecting ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="break-words">Aguardando você tocar em "Iniciar" no Telegram…</span>
+            </div>
+          ) : (
+            <Button
+              className="w-full rounded-xl"
+              onClick={handleConnectTelegram}
+              disabled={tgLoading}
+            >
+              {tgLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Conectar ao Telegram'}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
