@@ -36,6 +36,79 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
   const [showPinSetup, setShowPinSetup] = useState(false);
   const { toast } = useToast();
 
+  // Telegram state
+  const [tgStatus, setTgStatus] = useState<TelegramLinkStatus | null>(null);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgConnecting, setTgConnecting] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    checkTelegramLink().then(setTgStatus).catch(() => {});
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  const startPolling = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    let attempts = 0;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      const s = await checkTelegramLink().catch(() => null);
+      if (s?.connected) {
+        setTgStatus(s);
+        setTgConnecting(false);
+        if (pollRef.current) clearInterval(pollRef.current);
+        toast({ title: '✅ Telegram conectado!', description: 'Você receberá lembretes por lá.' });
+      } else if (attempts > 60) {
+        setTgConnecting(false);
+        if (pollRef.current) clearInterval(pollRef.current);
+      }
+    }, 3000);
+  };
+
+  const handleConnectTelegram = async () => {
+    setTgLoading(true);
+    try {
+      const res = await createTelegramLink(settings.reminderTime);
+      if (res.already_connected) {
+        const s = await checkTelegramLink();
+        setTgStatus(s);
+        toast({ title: 'Já conectado', description: 'Seu Telegram já está vinculado.' });
+        return;
+      }
+      window.open(res.url, '_blank');
+      setTgConnecting(true);
+      startPolling();
+    } catch (e) {
+      toast({ title: 'Erro ao conectar', description: String(e), variant: 'destructive' });
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  const handleDisconnectTelegram = async () => {
+    setTgLoading(true);
+    try {
+      await disconnectTelegram();
+      setTgStatus({ connected: false, link: null });
+      toast({ title: 'Telegram desconectado' });
+    } catch (e) {
+      toast({ title: 'Erro', description: String(e), variant: 'destructive' });
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  const syncTelegramPrefs = async (prefs: { daily_enabled?: boolean; weekly_enabled?: boolean; reminder_time?: string }) => {
+    if (!tgStatus?.connected) return;
+    try {
+      await updateTelegramPrefs(prefs);
+    } catch {
+      // silent
+    }
+  };
+
   const handlePinSetupSuccess = () => {
     setShowPinSetup(false);
     toast({
