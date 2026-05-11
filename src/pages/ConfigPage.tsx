@@ -232,6 +232,50 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
         </CardContent>
       </Card>
 
+      {/* Telegram Section */}
+      <Card className="mb-4 border-0 shadow-soft">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-primary" />
+            <CardTitle className="text-base">Telegram</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground break-words">
+            Receba lembretes diretamente no Telegram, sem depender de notificações push do navegador.
+          </p>
+          {tgStatus?.connected ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span>Conectado</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnectTelegram}
+                disabled={tgLoading}
+              >
+                Desconectar
+              </Button>
+            </div>
+          ) : tgConnecting ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="break-words">Aguardando você tocar em "Iniciar" no Telegram…</span>
+            </div>
+          ) : (
+            <Button
+              className="w-full rounded-xl"
+              onClick={handleConnectTelegram}
+              disabled={tgLoading}
+            >
+              {tgLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Conectar ao Telegram'}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Personality Section */}
       <Card className="mb-4 border-0 shadow-soft">
         <CardHeader className="pb-2">
