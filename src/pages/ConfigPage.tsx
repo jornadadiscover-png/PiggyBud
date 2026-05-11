@@ -126,12 +126,12 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
   };
 
   const handleToggleDaily = async (checked: boolean) => {
-    if (checked) {
+    if (checked && !tgStatus?.connected) {
       const ok = await requestNotificationPermission();
       if (!ok) {
         toast({
           title: 'Permissão necessária',
-          description: 'Permita notificações no navegador para receber lembretes.',
+          description: 'Permita notificações ou conecte o Telegram para receber lembretes.',
           variant: 'destructive',
         });
         return;
@@ -139,15 +139,16 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
     }
     updateSettings({ dailyReminderEnabled: checked });
     await applyReminderSettings();
+    await syncTelegramPrefs({ daily_enabled: checked });
   };
 
   const handleToggleWeekly = async (checked: boolean) => {
-    if (checked) {
+    if (checked && !tgStatus?.connected) {
       const ok = await requestNotificationPermission();
       if (!ok) {
         toast({
           title: 'Permissão necessária',
-          description: 'Permita notificações no navegador para receber o resumo semanal.',
+          description: 'Permita notificações ou conecte o Telegram para receber o resumo semanal.',
           variant: 'destructive',
         });
         return;
@@ -155,11 +156,13 @@ export function ConfigPage({ onNavigateToPremium: _onNavigateToPremium }: Config
     }
     updateSettings({ weeklyReportEnabled: checked });
     await applyReminderSettings();
+    await syncTelegramPrefs({ weekly_enabled: checked });
   };
 
   const handleReminderTimeChange = async (time: string) => {
     updateSettings({ reminderTime: time });
     await applyReminderSettings();
+    await syncTelegramPrefs({ reminder_time: time });
   };
 
   const handleThemeChange = (id: ThemeId, name: string) => {
