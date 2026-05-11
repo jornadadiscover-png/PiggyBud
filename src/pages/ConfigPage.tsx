@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,10 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettingsStore } from '@/stores/useSettingsStore';
-import { Bell, Sliders, Lock, Palette, RefreshCw } from 'lucide-react';
+import { Bell, Sliders, Lock, Palette, RefreshCw, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { applyReminderSettings, requestNotificationPermission } from '@/lib/reminders';
+import {
+  checkTelegramLink,
+  createTelegramLink,
+  updateTelegramPrefs,
+  disconnectTelegram,
+  type TelegramLinkStatus,
+} from '@/lib/telegram-link';
 import type { ThemeId } from '@/types';
 
 
