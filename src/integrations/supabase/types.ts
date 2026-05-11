@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_links: {
+        Row: {
+          chat_id: number | null
+          created_at: string
+          daily_enabled: boolean
+          device_id: string
+          last_daily_sent_date: string | null
+          last_weekly_sent_week: string | null
+          link_code: string
+          reminder_time: string
+          timezone: string
+          updated_at: string
+          weekly_enabled: boolean
+        }
+        Insert: {
+          chat_id?: number | null
+          created_at?: string
+          daily_enabled?: boolean
+          device_id: string
+          last_daily_sent_date?: string | null
+          last_weekly_sent_week?: string | null
+          link_code?: string
+          reminder_time?: string
+          timezone?: string
+          updated_at?: string
+          weekly_enabled?: boolean
+        }
+        Update: {
+          chat_id?: number | null
+          created_at?: string
+          daily_enabled?: boolean
+          device_id?: string
+          last_daily_sent_date?: string | null
+          last_weekly_sent_week?: string | null
+          link_code?: string
+          reminder_time?: string
+          timezone?: string
+          updated_at?: string
+          weekly_enabled?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
