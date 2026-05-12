@@ -124,86 +124,90 @@ export function RelatoriosPage({ onNavigateToPremium }: RelatoriosPageProps) {
         <p className="text-muted-foreground">Visualize seus gastos e tendências</p>
       </header>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-success" />
-              <span className="text-xs text-muted-foreground">Receitas do mês</span>
-            </div>
-            <p className="text-xl font-bold text-success">
-              R$ {currentMonthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-destructive" />
-              <span className="text-xs text-muted-foreground">Despesas do mês</span>
-            </div>
-            <p className="text-xl font-bold text-destructive">
-              R$ {currentMonthExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-            </p>
-            {lastMonthExpenses > 0 && (
-              <p className={`text-xs mt-1 ${expenseChange > 0 ? 'text-destructive' : 'text-success'}`}>
-                {expenseChange > 0 ? '↑' : '↓'} {Math.abs(expenseChange).toFixed(0)}% vs mês anterior
+      {/* Summary - PREMIUM */}
+      <PremiumGate feature="advanced-reports" onUpgrade={onNavigateToPremium}>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Card className="border-0 shadow-soft">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-success" />
+                <span className="text-xs text-muted-foreground">Receitas do mês</span>
+              </div>
+              <p className="text-xl font-bold text-success">
+                R$ {currentMonthIncome.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
               </p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-soft">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown className="w-4 h-4 text-destructive" />
+                <span className="text-xs text-muted-foreground">Despesas do mês</span>
+              </div>
+              <p className="text-xl font-bold text-destructive">
+                R$ {currentMonthExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+              </p>
+              {lastMonthExpenses > 0 && (
+                <p className={`text-xs mt-1 ${expenseChange > 0 ? 'text-destructive' : 'text-success'}`}>
+                  {expenseChange > 0 ? '↑' : '↓'} {Math.abs(expenseChange).toFixed(0)}% vs mês anterior
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </PremiumGate>
+
+      {/* Category Pie Chart - PREMIUM */}
+      <PremiumGate feature="advanced-reports" onUpgrade={onNavigateToPremium}>
+        <Card className="mb-4 border-0 shadow-soft">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Gastos por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {categoryData.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-muted-foreground">
+                Nenhum gasto registrado este mês
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <div className="w-40 h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={35}
+                        outerRadius={60}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 ml-4 space-y-2">
+                  {categoryData.slice(0, 4).map((cat) => (
+                    <div key={cat.name} className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: cat.color }} 
+                      />
+                      <span className="text-xs flex-1 truncate">{cat.fullName}</span>
+                      <span className="text-xs font-medium">
+                        R$ {cat.value.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Category Pie Chart - FREE */}
-      <Card className="mb-4 border-0 shadow-soft">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Gastos por Categoria</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {categoryData.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground">
-              Nenhum gasto registrado este mês
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <div className="w-40 h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={35}
-                      outerRadius={60}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex-1 ml-4 space-y-2">
-                {categoryData.slice(0, 4).map((cat) => (
-                  <div key={cat.name} className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: cat.color }} 
-                    />
-                    <span className="text-xs flex-1 truncate">{cat.fullName}</span>
-                    <span className="text-xs font-medium">
-                      R$ {cat.value.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      </PremiumGate>
 
       {/* Monthly Evolution - PREMIUM */}
       <PremiumGate feature="advanced-reports" onUpgrade={onNavigateToPremium}>
