@@ -60,6 +60,60 @@ const investmentLibrary = [
     short: 'Moedas digitais (Bitcoin, etc.)',
     full: 'Ativos digitais sem ligação a governos. Muito voláteis: podem subir 50% ou cair 50% em um mês. Recomenda-se no máximo 5%-10% do patrimônio. Exemplo: Bitcoin variou de R$ 80 mil a R$ 380 mil entre 2022-2024.',
   },
+  {
+    icon: <Shield className="w-5 h-5" />,
+    title: 'LCI e LCA',
+    short: 'Renda fixa isenta de Imposto de Renda',
+    full: 'Letras de Crédito Imobiliário (LCI) e do Agronegócio (LCA) são empréstimos a bancos para financiar esses setores. São isentas de IR para pessoa física e protegidas pelo FGC até R$ 250 mil. Exemplo: R$ 10.000 em LCI a 95% do CDI por 1 ano rende ~R$ 1.020 líquidos (sem desconto de IR).',
+  },
+  {
+    icon: <Wallet className="w-5 h-5" />,
+    title: 'Poupança',
+    short: 'A mais tradicional, mas rende pouco',
+    full: 'Isenta de IR e com liquidez diária, mas rende apenas 70% da Selic + TR quando a Selic está abaixo de 8,5%. Exemplo: R$ 1.000 na poupança em 1 ano rende ~R$ 60-70, enquanto no Tesouro Selic renderia ~R$ 100. Bom só para reservas pequenas e curtas.',
+  },
+  {
+    icon: <Landmark className="w-5 h-5" />,
+    title: 'Tesouro IPCA+',
+    short: 'Protege seu dinheiro da inflação',
+    full: 'Título público que paga a inflação (IPCA) + uma taxa fixa (ex: IPCA + 6% a.a.). Garante poder de compra no longo prazo. Ideal para aposentadoria e objetivos de 5+ anos. Exemplo: R$ 10.000 em Tesouro IPCA+ 2035 a IPCA+6% pode virar mais de R$ 25.000 reais (corrigidos pela inflação).',
+  },
+  {
+    icon: <Briefcase className="w-5 h-5" />,
+    title: 'Debêntures',
+    short: 'Você empresta para empresas',
+    full: 'Títulos de dívida emitidos por empresas para captar recursos. Pagam juros maiores que CDBs, mas sem proteção do FGC (mais risco). Debêntures incentivadas (infraestrutura) são isentas de IR. Exemplo: debênture incentivada a IPCA+7% pode render bem mais que Tesouro com mesmo prazo.',
+  },
+  {
+    icon: <LineChart className="w-5 h-5" />,
+    title: 'ETFs',
+    short: 'Fundos de índice na bolsa',
+    full: 'ETFs (Exchange Traded Funds) replicam um índice (ex: BOVA11 segue o Ibovespa, IVVB11 segue o S&P 500 dos EUA). Diversificação instantânea com taxas baixas (~0,3% a.a.). Exemplo: comprar 1 cota de IVVB11 (~R$ 320) é como investir nas 500 maiores empresas americanas.',
+  },
+  {
+    icon: <Globe className="w-5 h-5" />,
+    title: 'BDRs',
+    short: 'Ações estrangeiras pela B3',
+    full: 'Brazilian Depositary Receipts permitem investir em empresas como Apple, Google, Tesla e Amazon direto pela bolsa brasileira, sem precisar abrir conta no exterior. Exemplo: AAPL34 representa ações da Apple — você se beneficia da valorização e dividendos sem o trabalho de remeter dinheiro.',
+  },
+  {
+    icon: <Briefcase className="w-5 h-5" />,
+    title: 'Previdência Privada (PGBL/VGBL)',
+    short: 'Aposentadoria com benefício fiscal',
+    full: 'Investimento de longo prazo para aposentadoria. PGBL: deduz até 12% da renda no IR (bom para quem declara completa). VGBL: melhor para quem declara simplificada. Exemplo: aporte de R$ 500/mês por 30 anos a 8% a.a. forma um patrimônio de ~R$ 745 mil.',
+  },
+  {
+    icon: <Gem className="w-5 h-5" />,
+    title: 'Ouro',
+    short: 'Reserva de valor em tempos de crise',
+    full: 'Ativo defensivo que tende a subir quando a economia vai mal ou em períodos de inflação alta. Pode ser comprado via fundos (ex: GOLD11) ou contratos na B3. Recomenda-se no máximo 5%-10% do patrimônio. Exemplo: o ouro subiu mais de 80% entre 2019 e 2024 em reais.',
+  },
+  {
+    icon: <Wheat className="w-5 h-5" />,
+    title: 'Fundos Multimercado',
+    short: 'Diversificação em vários ativos',
+    full: 'Combinam renda fixa, ações, câmbio e até derivativos numa só carteira, gerida por profissionais. Buscam retornos acima do CDI com risco controlado. Cobram taxa de administração (~2% a.a.) e às vezes de performance. Bom para quem quer diversificar sem montar a carteira sozinho.',
+  },
 ];
 
 function PostCard({ post }: { post: TutorPost }) {
