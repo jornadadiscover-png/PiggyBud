@@ -118,14 +118,29 @@ const investmentLibrary = [
 ];
 
 function PostCard({ post }: { post: TutorPost }) {
+  const handleShare = () => {
+    const dateLabel = new Date(post.post_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    const text = `📰 ${post.title} (${dateLabel})\n\n${post.summary}\n\n💡 Dica: ${post.tip}\n\nVia PiggyBud — Tutor de Investimentos`;
+    shareContent({ title: post.title, text, url: APP_SHARE_URL });
+  };
+
   return (
     <div className="space-y-4">
       <Card className="border-0 shadow-soft overflow-hidden">
-        <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-4">
+        <div className="bg-gradient-to-br from-primary/20 to-primary/5 p-4 relative">
           <p className="text-xs text-muted-foreground mb-1">
             {new Date(post.post_date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <h2 className="text-xl font-bold break-words">{post.title}</h2>
+          <h2 className="text-xl font-bold break-words pr-10">{post.title}</h2>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleShare}
+            aria-label="Compartilhar post"
+            className="absolute top-3 right-3 h-8 w-8 rounded-full bg-background/60 hover:bg-background/90 backdrop-blur"
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
         </div>
         <CardContent className="p-4 space-y-4">
           <div>
