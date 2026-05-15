@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Settings, User, ChevronRight, BarChart3 } from 'lucide-react';
+import { Settings, User, ChevronRight, BarChart3, Share2 } from 'lucide-react';
+import { shareApp } from '@/lib/share';
 
 interface MaisPageProps {
   onNavigate: (tab: string) => void;
@@ -39,7 +40,23 @@ export function MaisPage({ onNavigate }: MaisPageProps) {
             </button>
           );
         })}
+
+        <button onClick={() => shareApp()} className="w-full text-left">
+          <Card className="border-0 shadow-soft hover:shadow-md transition-shadow bg-gradient-to-br from-primary/10 to-success/10">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-primary/20 text-primary">
+                <Share2 className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold break-words">Compartilhar PiggyBud</p>
+                <p className="text-xs text-muted-foreground break-words">Convide amigos para usar o app</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+            </CardContent>
+          </Card>
+        </button>
       </div>
     </div>
   );
 }
+
