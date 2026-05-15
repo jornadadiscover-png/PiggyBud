@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Newspaper, Lightbulb, BookOpen, Loader2, RefreshCw, TrendingUp, Building2, BarChart3, Coins, PiggyBank, Bitcoin } from 'lucide-react';
+import { GraduationCap, Newspaper, Lightbulb, BookOpen, Loader2, RefreshCw, TrendingUp, Building2, BarChart3, Coins, PiggyBank, Bitcoin, Landmark, Shield, LineChart, Globe, Briefcase, Gem, Wallet, Wheat } from 'lucide-react';
 import { PremiumGate } from '@/components/PremiumGate';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
