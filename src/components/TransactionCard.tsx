@@ -8,16 +8,34 @@ import { cn } from '@/lib/utils';
 interface TransactionCardProps {
   transaction: Transaction;
   style?: React.CSSProperties;
+  onEdit?: (transaction: Transaction) => void;
 }
 
-export function TransactionCard({ transaction, style }: TransactionCardProps) {
+export function TransactionCard({ transaction, style, onEdit }: TransactionCardProps) {
   const isIncome = transaction.type === 'income';
   const categoryLabel = categoryLabels[transaction.category] || transaction.category;
   const bankLabel = transaction.bank ? bankLabels[transaction.bank] : null;
+  const clickable = !!onEdit;
 
   return (
-    <Card 
-      className="animate-slide-up overflow-hidden border-0 shadow-soft hover:shadow-glow transition-all duration-300"
+    <Card
+      onClick={clickable ? () => onEdit!(transaction) : undefined}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onEdit!(transaction);
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        'animate-slide-up overflow-hidden border-0 shadow-soft hover:shadow-glow transition-all duration-300',
+        clickable && 'cursor-pointer active:scale-[0.98]'
+      )}
       style={style}
     >
       <CardContent className="p-4">

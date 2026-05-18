@@ -5,6 +5,7 @@ import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TransactionCard } from '@/components/TransactionCard';
 import { AddTransactionDialog } from '@/components/AddTransactionDialog';
+import { EditTransactionDialog } from '@/components/EditTransactionDialog';
 import { PasteNotificationDialog } from '@/components/PasteNotificationDialog';
 import { MascotAvatar } from '@/components/MascotAvatar';
 import { DailyQuote } from '@/components/DailyQuote';
