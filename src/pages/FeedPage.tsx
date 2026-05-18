@@ -174,6 +174,7 @@ export function FeedPage() {
                 key={transaction.id} 
                 transaction={transaction}
                 style={{ animationDelay: `${index * 50}ms` }}
+                onEdit={setEditingTransaction}
               />
             ))}
           </div>
@@ -192,6 +193,11 @@ export function FeedPage() {
       {/* Dialogs */}
       <AddTransactionDialog open={showAdd} onOpenChange={setShowAdd} />
       <PasteNotificationDialog open={showPaste} onOpenChange={setShowPaste} />
+      <EditTransactionDialog
+        transaction={editingTransaction}
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+      />
     </div>
   );
 }
