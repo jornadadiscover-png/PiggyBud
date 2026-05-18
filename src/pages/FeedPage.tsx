@@ -5,6 +5,7 @@ import { useTransactionStore } from '@/stores/useTransactionStore';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { TransactionCard } from '@/components/TransactionCard';
 import { AddTransactionDialog } from '@/components/AddTransactionDialog';
+import { EditTransactionDialog } from '@/components/EditTransactionDialog';
 import { PasteNotificationDialog } from '@/components/PasteNotificationDialog';
 import { MascotAvatar } from '@/components/MascotAvatar';
 import { DailyQuote } from '@/components/DailyQuote';
@@ -17,6 +18,7 @@ import piggyLogo from '@/assets/piggy-bud-logo.webp';
 export function FeedPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showPaste, setShowPaste] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<null | import('@/types').Transaction>(null);
   const { transactions, getTotalByType } = useTransactionStore();
   const { profile } = useSettingsStore();
 
@@ -172,6 +174,7 @@ export function FeedPage() {
                 key={transaction.id} 
                 transaction={transaction}
                 style={{ animationDelay: `${index * 50}ms` }}
+                onEdit={setEditingTransaction}
               />
             ))}
           </div>
@@ -190,6 +193,11 @@ export function FeedPage() {
       {/* Dialogs */}
       <AddTransactionDialog open={showAdd} onOpenChange={setShowAdd} />
       <PasteNotificationDialog open={showPaste} onOpenChange={setShowPaste} />
+      <EditTransactionDialog
+        transaction={editingTransaction}
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+      />
     </div>
   );
 }
