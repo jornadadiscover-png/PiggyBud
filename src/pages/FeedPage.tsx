@@ -18,6 +18,7 @@ import piggyLogo from '@/assets/piggy-bud-logo.webp';
 export function FeedPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showPaste, setShowPaste] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<null | import('@/types').Transaction>(null);
   const { transactions, getTotalByType } = useTransactionStore();
   const { profile } = useSettingsStore();
 
